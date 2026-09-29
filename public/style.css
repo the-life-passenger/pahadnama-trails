@@ -42,12 +42,15 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 100px;
+  scroll-padding-top: 80px;
   font-size: 16px;
+  overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-text-size-adjust: 100%;
 }
 
 section[id], .section {
-  scroll-margin-top: 100px;
+  scroll-margin-top: 80px;
 }
 
 body {
@@ -56,6 +59,9 @@ body {
   color: var(--text-main);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  max-width: 100vw;
+  position: relative;
 }
 
 img { max-width: 100%; height: auto; display: block; }
@@ -470,37 +476,6 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .spinner { width: 36px; height: 36px; border: 3px solid #d4ccbe; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Responsive */
-@media (max-width: 1200px) {
-  .nav-insta-text { display: none; }
-  .nav-insta-btn { width: 38px; height: 38px; padding: 0; border-radius: 50%; justify-content: center; }
-  .desktop-nav { gap: 0.2rem; margin-right: 0.4rem; }
-  .nav-link { padding: 0.4rem 0.6rem; font-size: 0.84rem; }
-}
-@media (max-width: 1024px) {
-  .desktop-nav, .nav-cta, .nav-insta-btn { display: none !important; }
-  .mobile-menu-toggle { display: flex; }
-  .treks-grid, .feedback-grid { grid-template-columns: repeat(2, 1fr); }
-  .experience-grid, .payment-card, .contact-card { grid-template-columns: 1fr; gap: 2.5rem; }
-  .footer-container { grid-template-columns: 1fr 1fr; }
-  .custom-perks-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 768px) {
-  .announcement-inner { flex-direction: column; text-align: center; gap: 0.3rem; }
-  .hero-headline { font-size: 2.6rem; }
-  .hero-subtext { font-size: 1.05rem; }
-  .hero-metrics { flex-wrap: wrap; gap: 1.2rem; }
-  .metric-divider { display: none; }
-  .treks-grid, .feedback-grid, .custom-perks-grid, .checklist-grid, .dates-chips-grid { grid-template-columns: 1fr; }
-  .custom-box, .payment-card, .contact-card { padding: 2rem 1.5rem; }
-  .custom-heading { font-size: 1.9rem; }
-  .custom-trek-card-banner { flex-direction: column; text-align: center; padding: 1.8rem; }
-  .footer-container { grid-template-columns: 1fr; gap: 2rem; }
-  .footer-bottom { flex-direction: column; gap: 0.75rem; text-align: center; }
-  .trek-quick-meta { grid-template-columns: repeat(2, 1fr); }
-  .modal-booking-bar { flex-direction: column; align-items: stretch; gap: 1rem; }
-}
-
 
 /* Brand Logo - User Uploaded Premium Silhouette */
 .brand-logo-img {
@@ -633,26 +608,6 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   100% { transform: scale(0.95); opacity: 0; }
 }
 
-@media (max-width: 768px) {
-  .floating-whatsapp-wrap {
-    bottom: 20px;
-    right: 20px;
-  }
-  .floating-whatsapp-tooltip {
-    display: none;
-  }
-  .floating-whatsapp-btn {
-    padding: 0;
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    justify-content: center;
-  }
-  .floating-whatsapp-icon {
-    width: 54px;
-    height: 54px;
-  }
-}
 
 /* ==========================================
    RAZORPAY CHECKOUT & PAYMENT MODAL STYLES
@@ -983,6 +938,302 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   border-radius: 6px;
   transform: rotate(-2deg);
 }
+
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .nav-insta-text { display: none; }
+  .nav-insta-btn { width: 38px; height: 38px; padding: 0; border-radius: 50%; justify-content: center; }
+  .desktop-nav { gap: 0.2rem; margin-right: 0.4rem; }
+  .nav-link { padding: 0.4rem 0.6rem; font-size: 0.84rem; }
+}
+@media (max-width: 1024px) {
+  .desktop-nav, .nav-cta, .nav-insta-btn { display: none !important; }
+  .mobile-menu-toggle { display: flex; }
+  .treks-grid, .feedback-grid { grid-template-columns: repeat(2, 1fr); }
+  .experience-grid, .payment-card, .contact-card { grid-template-columns: 1fr; gap: 2.5rem; }
+  .footer-container { grid-template-columns: 1fr 1fr; }
+  .custom-perks-grid { grid-template-columns: repeat(2, 1fr); }
+}
+/* Tablet & Mobile (<= 768px) */
+@media (max-width: 768px) {
+  /* Layout & Containers */
+  .container { padding: 0 1.25rem; }
+  .section { padding: 3.5rem 0; }
+  .section-header { margin-bottom: 2rem; }
+  .section-title { font-size: 2rem; line-height: 1.2; letter-spacing: -0.01em; }
+  .section-subtitle { font-size: 0.98rem; }
+
+  /* Announcement Bar */
+  .announcement-bar { padding: 0.45rem 0; font-size: 0.78rem; }
+  .announcement-inner { flex-direction: column; text-align: center; gap: 0.35rem; }
+
+  /* Header & Navigation */
+  .nav-container { height: 68px; }
+  .brand-link { gap: 0.65rem; }
+  .brand-logo-img { width: 44px !important; height: 44px !important; border-radius: 10px !important; }
+  .brand-title { font-size: 1.15rem; }
+  .brand-sub { font-size: 0.62rem; }
+  .mobile-menu-toggle { width: 42px; height: 42px; }
+  .mobile-drawer { width: 85vw; max-width: 320px; padding: 1.5rem 1.25rem; height: 100dvh; }
+  .mobile-nav-links { overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 1rem; }
+  .mobile-nav-item { padding: 0.5rem 0; font-size: 1.05rem; }
+
+  /* Hero Section */
+  .hero-section { min-height: auto; padding: 3.8rem 0 3.2rem; }
+  .hero-badge { font-size: 0.75rem; padding: 0.35rem 0.85rem; margin-bottom: 1.2rem; }
+  .hero-headline { font-size: 2.35rem; line-height: 1.15; margin-bottom: 1.2rem; }
+  .hero-subtext { font-size: 1rem; line-height: 1.6; margin-bottom: 1.8rem; }
+  .hero-actions { flex-direction: column; width: 100%; gap: 0.85rem; margin-bottom: 2.5rem; }
+  .hero-actions .btn { width: 100%; justify-content: center; padding: 0.9rem 1.5rem; font-size: 1rem; }
+  .hero-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; width: 100%; padding-top: 1.6rem; }
+  .metric-box { padding: 0.85rem 1rem; text-align: center; align-items: center; border-radius: 10px; }
+  .metric-num { font-size: 1.4rem; }
+  .metric-label { font-size: 0.8rem; }
+  .metric-divider { display: none; }
+
+  /* Filter Bar - Smooth Horizontal Touch Scroller */
+  .trek-filter-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.65rem;
+    margin-bottom: 2rem;
+    gap: 0.5rem;
+    scrollbar-width: none;
+  }
+  .trek-filter-bar::-webkit-scrollbar { display: none; }
+  .filter-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.84rem;
+  }
+
+  /* Treks Grid & Cards */
+  .treks-grid { grid-template-columns: 1fr; gap: 1.6rem; margin-bottom: 2.5rem; }
+  .trek-card { border-radius: 14px; }
+  .card-media { aspect-ratio: 16 / 9; }
+  .card-body { padding: 1.35rem; }
+  .card-title { font-size: 1.25rem; }
+  .card-desc { font-size: 0.88rem; }
+  .card-date-slot { padding: 0.6rem 0.8rem; font-size: 0.8rem; }
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding-top: 1rem;
+  }
+  .card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  .card-actions .btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.65rem 0.8rem;
+    font-size: 0.88rem;
+    text-align: center;
+  }
+
+  /* Custom Trek Banner */
+  .custom-trek-card-banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.8rem 1.4rem;
+    gap: 1.25rem;
+    border-radius: 14px;
+  }
+  .custom-trek-card-banner h3 { font-size: 1.3rem; }
+  .custom-trek-card-banner p { font-size: 0.9rem; }
+  .custom-trek-banner-action { width: 100%; }
+  .custom-trek-banner-action .btn { width: 100%; justify-content: center; }
+
+  /* Experience / Story Section */
+  .experience-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  .lead-text { font-size: 1.08rem; }
+  .values-list { gap: 1.25rem; }
+  .value-item { gap: 1rem; }
+  .value-icon { width: 44px; height: 44px; font-size: 1.35rem; border-radius: 10px; }
+  .brand-crest-card { padding: 2rem 1.4rem; border-radius: 14px; }
+  .crest-showcase-img { width: 160px !important; height: 160px !important; }
+
+  /* Custom 6+ Section */
+  .custom-box { padding: 2.2rem 1.4rem; border-radius: 14px; }
+  .custom-heading { font-size: 1.85rem; }
+  .custom-subtext { font-size: 0.95rem; margin-bottom: 2rem; }
+  .custom-perks-grid { grid-template-columns: 1fr; gap: 1rem; margin-bottom: 2rem; }
+  .perk-box { padding: 1.15rem; border-radius: 10px; }
+  .custom-cta-wrap { width: 100%; }
+  .custom-cta-wrap .btn { width: 100%; justify-content: center; }
+
+  /* Payment & UPI Info */
+  .payment-card { padding: 2rem 1.4rem; border-radius: 14px; }
+  .step-item { gap: 0.9rem; }
+  .step-num { width: 30px; height: 30px; font-size: 0.9rem; }
+  .upi-box { flex-direction: column; align-items: flex-start; gap: 0.75rem; padding: 1rem 1.2rem; }
+  .upi-box .btn { width: 100%; justify-content: center; }
+
+  /* Reviews & FAQs */
+  .feedback-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+  .review-card { padding: 1.4rem; border-radius: 12px; }
+  .accordion-header { padding: 1.1rem 1.25rem; font-size: 0.98rem; }
+  .accordion-body { padding: 0 1.25rem 1.25rem; font-size: 0.92rem; }
+
+  /* Contact Section */
+  .contact-card { grid-template-columns: 1fr; gap: 2rem; padding: 2rem 1.4rem; border-radius: 14px; }
+  .contact-left p { font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .contact-links { gap: 0.75rem; }
+  .contact-link-item { padding: 0.75rem 1rem; gap: 0.75rem; }
+  .direct-booking-cta { padding: 1.8rem 1.2rem; border-radius: 12px; }
+  .direct-booking-cta .btn { width: 100%; justify-content: center; }
+
+  /* Footer */
+  .site-footer { padding: 3.5rem 0 2rem; }
+  .footer-container { grid-template-columns: 1fr; gap: 2.2rem; margin-bottom: 2.5rem; }
+  .footer-bottom { flex-direction: column; gap: 0.85rem; text-align: center; }
+
+  /* Modals (Trek Details & Razorpay Checkout) */
+  .modal-overlay { padding: 0.6rem; align-items: center; }
+  .modal-dialog {
+    max-height: 92dvh;
+    border-radius: 16px;
+    width: 100%;
+    margin: 0;
+  }
+  .modal-body { padding: 1.4rem 1.1rem; }
+  .modal-head h3 { font-size: 1.35rem; }
+  .modal-head p { font-size: 0.88rem; }
+  .modal-close {
+    top: 0.6rem;
+    right: 0.6rem;
+    margin-top: 0.4rem;
+    margin-right: 0.4rem;
+    margin-bottom: -38px;
+    width: 38px;
+    height: 38px;
+    font-size: 1.4rem;
+  }
+
+  /* Form Inputs (16px to prevent iOS auto-zoom) */
+  .form-row { grid-template-columns: 1fr; gap: 0; }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px !important;
+    padding: 0.75rem 0.9rem;
+  }
+
+  /* Trek Modal Content */
+  .trek-modal-hero { aspect-ratio: 16 / 9; border-radius: 10px; margin-bottom: 1.2rem; }
+  .trek-quick-meta { grid-template-columns: repeat(2, 1fr); gap: 0.65rem; padding: 0.85rem; margin-bottom: 1.5rem; }
+  .meta-item small { font-size: 0.68rem; }
+  .meta-item strong { font-size: 0.88rem; }
+  .gallery-scroller { gap: 0.5rem; margin-bottom: 1.5rem; }
+  .gallery-thumb { width: 90px; height: 62px; }
+  .checklist-grid { grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .checklist-card { padding: 1rem; }
+  .modal-dates-picker { padding: 1rem; margin-bottom: 1.5rem; }
+  .dates-chips-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+  .date-chip-btn { padding: 0.65rem 0.85rem; font-size: 0.88rem; }
+  .modal-booking-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1.1rem 0 0;
+    margin-top: 1.2rem;
+  }
+  .modal-booking-bar .btn { width: 100%; justify-content: center; }
+
+  /* Payment Modal & Tabs */
+  .payment-tabs-nav {
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.35rem;
+    margin-bottom: 1.2rem;
+  }
+  .pay-tab-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 0.85rem;
+    font-size: 0.88rem;
+  }
+  .price-breakup-card { padding: 1rem; }
+  .rzp-simulator-card { padding: 1rem; }
+  .simulator-row { font-size: 0.82rem; }
+
+  /* Official Voucher */
+  .official-voucher-card { padding: 1.15rem 0.95rem; border-radius: 12px; }
+  .voucher-card-top { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .voucher-code-badge { width: 100%; display: flex; align-items: center; justify-content: space-between; text-align: left; }
+  .voucher-grid { grid-template-columns: 1fr; gap: 0.65rem; }
+  .voucher-card-footer { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .voucher-actions { flex-direction: column; width: 100%; gap: 0.6rem; }
+  .voucher-actions .btn { width: 100%; justify-content: center; }
+  /* Floating WhatsApp on Mobile */
+  .floating-whatsapp-wrap {
+    bottom: 18px;
+    right: 18px;
+  }
+  .floating-whatsapp-tooltip {
+    display: none !important;
+  }
+  .floating-whatsapp-btn {
+    padding: 0;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    justify-content: center;
+  }
+  .floating-whatsapp-icon {
+    width: 50px;
+    height: 50px;
+  }
+  .upi-val {
+    word-break: break-all;
+  }
+}
+
+/* Small Phones (<= 480px, e.g. iPhone 12/13/14/15, Samsung Galaxy) */
+@media (max-width: 480px) {
+  .container { padding: 0 1rem; }
+  .section { padding: 3rem 0; }
+  .nav-container { height: 62px; }
+  .brand-logo-img { width: 40px !important; height: 40px !important; }
+  .brand-title { font-size: 1.05rem; }
+  .brand-sub { font-size: 0.58rem; }
+  .hero-headline { font-size: 2rem; }
+  .hero-subtext { font-size: 0.94rem; }
+  .section-title { font-size: 1.7rem; }
+  .hero-metrics { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .metric-box { padding: 0.65rem 0.75rem; }
+  .metric-num { font-size: 1.25rem; }
+  .metric-label { font-size: 0.72rem; }
+  .card-body { padding: 1.15rem 1rem; }
+  .card-title { font-size: 1.15rem; }
+  .price-amount { font-size: 1.25rem; }
+  .custom-heading { font-size: 1.6rem; }
+  .modal-overlay { padding: 0.4rem; }
+  .modal-body { padding: 1.2rem 0.85rem; }
+  .card-actions { flex-direction: column; gap: 0.4rem; }
+  .card-actions .btn { width: 100%; }
+}
+
+/* Extra Small Phones (<= 360px, e.g. iPhone SE, Galaxy A01) */
+@media (max-width: 360px) {
+  .brand-title { font-size: 0.95rem; }
+  .hero-headline { font-size: 1.75rem; }
+  .section-title { font-size: 1.5rem; }
+  .hero-metrics { grid-template-columns: 1fr; }
+  .trek-quick-meta { grid-template-columns: 1fr; }
+}
+
+
 
 @media print {
   body * {
