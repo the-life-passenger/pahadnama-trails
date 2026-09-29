@@ -1,0 +1,16 @@
+﻿{
+  "name": "pahadnama-trails",
+  "version": "1.0.0",
+  "description": "Pahadnama Trails - Maharashtra Sahyadri Adventure Treks Platform & CMS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
