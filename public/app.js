@@ -591,15 +591,16 @@ function openPaymentOptions(defaultTab = 'razorpay') {
             <input type="text" id="payCustomerName" required placeholder="e.g. Rahul Patil">
           </div>
           <div class="form-group">
-            <label for="payCustomerPhone">WhatsApp Mobile No. *</label>
-            <input type="tel" id="payCustomerPhone" required placeholder="e.g. 9820012345">
+            <label for="payCustomerAge">Age (Years) *</label>
+            <input type="number" id="payCustomerAge" required min="5" max="99" placeholder="e.g. 24" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)">
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="payCustomerEmail">Email Address (Optional)</label>
-            <input type="email" id="payCustomerEmail" placeholder="e.g. rahul@example.com">
+            <label for="payCustomerPhone">WhatsApp Mobile No. (10 Digits) *</label>
+            <input type="tel" id="payCustomerPhone" required placeholder="10-digit mobile number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+            <small style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;display:block">Strictly 10 digits without +91 or 0</small>
           </div>
           <div class="form-group">
             <label for="payParticipants">Participants Count *</label>
@@ -611,11 +612,17 @@ function openPaymentOptions(defaultTab = 'razorpay') {
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="payPickupLocation">Select Pickup Point</label>
-          <select id="payPickupLocation">
-            ${pickupsHtml}
-          </select>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="payPickupLocation">Select Pickup Point</label>
+            <select id="payPickupLocation">
+              ${pickupsHtml}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="payCustomerEmail">Email Address (Optional)</label>
+            <input type="email" id="payCustomerEmail" placeholder="e.g. rahul@example.com">
+          </div>
         </div>
 
         <!-- Live Price Calculation Box -->
@@ -808,6 +815,7 @@ async function handleRazorpayPayNow(e) {
   if (!currentTrek) return;
 
   const nameInput = document.getElementById('payCustomerName');
+  const ageInput = document.getElementById('payCustomerAge');
   const phoneInput = document.getElementById('payCustomerPhone');
   const emailInput = document.getElementById('payCustomerEmail');
   const countInput = document.getElementById('payParticipants');
@@ -815,15 +823,30 @@ async function handleRazorpayPayNow(e) {
   const submitBtn = document.getElementById('btnRazorpaySubmit');
 
   const customer_name = nameInput ? nameInput.value.trim() : '';
-  const customer_phone = phoneInput ? phoneInput.value.trim() : '';
+  const customer_age = ageInput ? parseInt(ageInput.value, 10) : 0;
+  const raw_phone = phoneInput ? phoneInput.value.trim() : '';
+  const customer_phone = raw_phone.replace(/\D/g, '');
   const customer_email = emailInput ? emailInput.value.trim() : '';
   const participants = Math.max(1, parseInt(countInput ? countInput.value : 1) || 1);
   const pickup_location = pickupInput ? pickupInput.value : '';
   const total_amount = participants * currentTrek.price;
   const batch_date = currentSelectedDateStr || 'Upcoming Weekend Batch';
 
-  if (!customer_name || !customer_phone) {
-    alert('Please enter your full name and WhatsApp mobile number.');
+  if (!customer_name) {
+    alert('Please enter your full name.');
+    if (nameInput) nameInput.focus();
+    return;
+  }
+
+  if (!customer_age || customer_age < 5 || customer_age > 99) {
+    alert('Kripya valid age enter karein (5 se 99 saal).');
+    if (ageInput) ageInput.focus();
+    return;
+  }
+
+  if (!customer_phone || customer_phone.length !== 10) {
+    alert('Mobile number strictly 10-digit ka hona chahiye (bina +91 ya 0 ke, e.g. 9820012345).');
+    if (phoneInput) phoneInput.focus();
     return;
   }
 
@@ -847,6 +870,7 @@ async function handleRazorpayPayNow(e) {
         batch_date,
         customer_name,
         customer_phone,
+        customer_age,
         customer_email,
         participants,
         pickup_location,
@@ -1077,7 +1101,7 @@ function renderBookingSuccessVoucher(b) {
     `Booking ID: ${b.booking_code}\n` +
     `Trail: ${b.trek_name}\n` +
     `Batch: ${b.batch_date}\n` +
-    `Customer: ${b.customer_name} (${b.customer_phone})\n` +
+    `Customer: ${b.customer_name} (${b.customer_age ? b.customer_age + ' yrs, ' : ''}${b.customer_phone})\n` +
     `Participants: ${b.participants}\n` +
     `Pickup: ${b.pickup_location || 'Confirmed'}\n` +
     `Total Paid: ${formatInr(b.total_amount)}\n` +
@@ -1124,7 +1148,7 @@ function renderBookingSuccessVoucher(b) {
         </div>
         <div class="voucher-item">
           <span class="v-label">LEAD TREKKER</span>
-          <strong class="v-val">${esc(b.customer_name)}</strong>
+          <strong class="v-val">${esc(b.customer_name)}${b.customer_age ? ` (${esc(b.customer_age)} yrs)` : ''}</strong>
         </div>
         <div class="voucher-item">
           <span class="v-label">PARTICIPANTS</span>

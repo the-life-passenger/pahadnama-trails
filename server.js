@@ -227,6 +227,7 @@ app.post('/api/payments/create-order', async (req, res) => {
       batch_date,
       customer_name,
       customer_phone,
+      customer_age,
       customer_email,
       participants,
       pickup_location,
@@ -235,6 +236,16 @@ app.post('/api/payments/create-order', async (req, res) => {
 
     if (!customer_name || !customer_phone) {
       return res.status(400).json({ ok: false, error: 'Customer name and phone number are required' });
+    }
+
+    const cleanPhone = String(customer_phone || '').replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      return res.status(400).json({ ok: false, error: 'Mobile number must be strictly 10 digits (e.g. 9820012345).' });
+    }
+
+    const ageNum = parseInt(customer_age, 10);
+    if (!ageNum || ageNum < 5 || ageNum > 99) {
+      return res.status(400).json({ ok: false, error: 'Customer age is required and must be between 5 and 99 years.' });
     }
 
     const s = getSettings();
@@ -281,7 +292,8 @@ app.post('/api/payments/create-order', async (req, res) => {
               trek_name: trek_name || '',
               batch_date: batch_date || '',
               customer_name: customer_name || '',
-              customer_phone: customer_phone || ''
+              customer_phone: cleanPhone,
+              customer_age: ageNum
             }
           })
         });
@@ -312,10 +324,10 @@ app.post('/api/payments/create-order', async (req, res) => {
     const insertStmt = db.prepare(`
       INSERT INTO bookings (
         booking_code, trek_id, trek_name, batch_date,
-        customer_name, customer_phone, customer_email,
+        customer_name, customer_phone, customer_age, customer_email,
         participants, pickup_location, total_amount,
         payment_method, payment_status, razorpay_order_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'razorpay', 'PENDING', ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'razorpay', 'PENDING', ?)
     `);
 
     let validTrekId = null;
@@ -330,7 +342,8 @@ app.post('/api/payments/create-order', async (req, res) => {
       trek_name || 'Sahyadri Trek',
       batch_date || '',
       customer_name.trim(),
-      customer_phone.trim(),
+      cleanPhone,
+      ageNum,
       (customer_email || '').trim(),
       numParticipants,
       (pickup_location || '').trim(),
@@ -349,7 +362,8 @@ app.post('/api/payments/create-order', async (req, res) => {
       razorpay_error: razorpayErrorMsg,
       customer: {
         name: customer_name,
-        phone: customer_phone,
+        phone: cleanPhone,
+        age: ageNum,
         email: customer_email
       }
     });

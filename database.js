@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   batch_date TEXT,
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
+  customer_age INTEGER DEFAULT NULL,
   customer_email TEXT DEFAULT '',
   participants INTEGER DEFAULT 1,
   pickup_location TEXT DEFAULT '',
@@ -121,6 +122,12 @@ CREATE TABLE IF NOT EXISTS settings (
   value TEXT NOT NULL
 );
 `);
+
+try {
+  db.prepare("ALTER TABLE bookings ADD COLUMN customer_age INTEGER DEFAULT NULL").run();
+} catch (e) {
+  // column already exists
+}
 
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const hash = crypto.scryptSync(password, salt, 64).toString('hex');

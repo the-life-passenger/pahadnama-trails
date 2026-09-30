@@ -879,7 +879,7 @@ async function renderBookingsTab(filterStatus = currentBookingsStatus, searchQue
                   <br><small style="color:var(--admin-text-muted)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${esc(b.batch_date)}</small>
                 </td>
                 <td>
-                  <strong>${esc(b.customer_name)}</strong>
+                  <strong>${esc(b.customer_name)}</strong> ${b.customer_age ? `<span style="font-size:0.75rem;background:#e2e8f0;padding:1px 6px;border-radius:4px;color:#334155;margin-left:4px;font-weight:600">${esc(b.customer_age)} yrs</span>` : ''}
                   <br><small style="color:var(--admin-text-muted)"><a href="https://wa.me/${esc(b.customer_phone.replace(/[^0-9]/g, ''))}" target="_blank" style="color:var(--admin-success);font-weight:600">${esc(b.customer_phone)}</a></small>
                   ${b.customer_email ? `<br><small style="color:var(--admin-text-muted)">${esc(b.customer_email)}</small>` : ''}
                 </td>
@@ -965,6 +965,7 @@ async function openBookingDetailsModal(id) {
           <div><small style="color:var(--admin-text-muted);display:block">Trail Name</small><strong>${esc(b.trek_name)}</strong></div>
           <div><small style="color:var(--admin-text-muted);display:block">Batch Date</small><strong>${esc(b.batch_date)}</strong></div>
           <div><small style="color:var(--admin-text-muted);display:block">Customer Name</small><strong>${esc(b.customer_name)}</strong></div>
+          <div><small style="color:var(--admin-text-muted);display:block">Age</small><strong>${b.customer_age ? esc(b.customer_age) + ' Years' : '—'}</strong></div>
           <div><small style="color:var(--admin-text-muted);display:block">Customer Phone</small><strong><a href="tel:${esc(b.customer_phone)}">${esc(b.customer_phone)}</a></strong></div>
           <div><small style="color:var(--admin-text-muted);display:block">Customer Email</small><strong>${esc(b.customer_email || '—')}</strong></div>
           <div><small style="color:var(--admin-text-muted);display:block">Pickup Point</small><strong>${esc(b.pickup_location || 'Dadar / Base Village')}</strong></div>
