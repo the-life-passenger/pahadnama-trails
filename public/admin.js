@@ -119,16 +119,64 @@ async function handleAdminLogout() {
   location.reload();
 }
 
+function toggleAdminMobileMenu(forceOpen) {
+  const sidebar = document.getElementById('adminSidebar');
+  const backdrop = document.getElementById('adminSidebarBackdrop');
+  if (!sidebar || !backdrop) return;
+  const willOpen = (typeof forceOpen === 'boolean') ? forceOpen : !sidebar.classList.contains('open');
+  if (willOpen) {
+    sidebar.classList.add('open');
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  } else {
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+
+function handleAdminModalOverlayClick(e) {
+  const modal = document.getElementById('adminModal');
+  if (e.target === modal) {
+    closeAdminModal();
+  }
+}
+
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    item.classList.add('active');
     loadTab(item.dataset.tab);
+  });
+});
+
+document.querySelectorAll('.mobile-tab-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    loadTab(pill.dataset.tab);
   });
 });
 
 async function loadTab(tab) {
   currentTab = tab;
+  toggleAdminMobileMenu(false);
+
+  // Sync sidebar active status
+  document.querySelectorAll('.nav-item').forEach(i => {
+    i.classList.toggle('active', i.dataset.tab === tab);
+  });
+
+  // Sync mobile quick pills active status & auto-scroll into view
+  document.querySelectorAll('.mobile-tab-pill').forEach(p => {
+    const isActive = p.dataset.tab === tab;
+    p.classList.toggle('active', isActive);
+    if (isActive) {
+      try {
+        p.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      } catch (e) {}
+    }
+  });
+
+  // Scroll to top of content on tab switch
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
   const content = document.getElementById('adminContent');
   const title = document.getElementById('pageTitle');
   const topbarActions = document.getElementById('topbarActions');
@@ -224,31 +272,34 @@ async function renderTreksTab() {
     content.innerHTML = `
       <div class="admin-panel">
         <div class="admin-panel-head"><h3>Published Maharashtra Treks (${activeTrekList.length})</h3></div>
-        <table class="admin-table">
-          <thead>
-            <tr><th>Cover</th><th>Trek Name</th><th>Location</th><th>Price</th><th>Difficulty</th><th>Status</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            ${activeTrekList.map(t => `
-              <tr>
-                <td><img src="${esc(t.cover_photo || '/brand/pahadnama-logo.png')}" alt="" class="table-thumb"></td>
-                <td><strong>${esc(t.name)}</strong><br><small style="color:var(--admin-text-muted)">${esc(t.duration)} &bull; ${t.dates ? t.dates.length : 0} dates</small></td>
-                <td>${esc(t.location)}</td>
-                <td><strong>&#8377;${Number(t.price).toLocaleString('en-IN')}</strong></td>
-                <td>${esc(t.difficulty)}</td>
-                <td><span class="table-badge ${t.status}">${esc(t.status)}</span></td>
-                <td>
-                  <div class="table-actions">
-                    <button class="btn-admin-primary btn-admin-sm" onclick="openEditTrekModal(${t.id})">Edit</button>
-                    <button class="btn-admin-outline btn-admin-sm" onclick="openDatesForTrek(${t.id})">Dates</button>
-                    <button class="btn-admin-outline btn-admin-sm" onclick="openPhotosForTrek(${t.id})">Photos</button>
-                    <button class="btn-admin-danger btn-admin-sm" onclick="handleDeleteTrek(${t.id}, '${esc(t.name)}')">Delete</button>
-                  </div>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+        <div class="table-scroll-hint"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg> Swipe horizontally &harr; to view all columns</div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Cover</th><th>Trek Name</th><th>Location</th><th>Price</th><th>Difficulty</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              ${activeTrekList.map(t => `
+                <tr>
+                  <td><img src="${esc(t.cover_photo || '/brand/pahadnama-logo.png')}" alt="" class="table-thumb"></td>
+                  <td><strong>${esc(t.name)}</strong><br><small style="color:var(--admin-text-muted)">${esc(t.duration)} &bull; ${t.dates ? t.dates.length : 0} dates</small></td>
+                  <td>${esc(t.location)}</td>
+                  <td><strong>&#8377;${Number(t.price).toLocaleString('en-IN')}</strong></td>
+                  <td>${esc(t.difficulty)}</td>
+                  <td><span class="table-badge ${t.status}">${esc(t.status)}</span></td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn-admin-primary btn-admin-sm" onclick="openEditTrekModal(${t.id})">Edit</button>
+                      <button class="btn-admin-outline btn-admin-sm" onclick="openDatesForTrek(${t.id})">Dates</button>
+                      <button class="btn-admin-outline btn-admin-sm" onclick="openPhotosForTrek(${t.id})">Photos</button>
+                      <button class="btn-admin-danger btn-admin-sm" onclick="handleDeleteTrek(${t.id}, '${esc(t.name)}')">Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>`;
   } catch (err) {
     content.innerHTML = '<p style="color:red">Failed to load treks: ' + esc(err.message) + '</p>';
@@ -451,30 +502,33 @@ async function renderDatesTab(preselectTrekId = null) {
           </form>
         </div>
 
-        <table class="admin-table">
-          <thead>
-            <tr><th>Date</th><th>Day</th><th>Availability</th><th>Status</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            ${(currentTrek.dates && currentTrek.dates.length) ? currentTrek.dates.map(d => `
-              <tr>
-                <td><strong>${esc(d.event_date)}</strong></td>
-                <td>${esc(d.day_of_week)}</td>
-                <td>${d.available_seats} / ${d.total_seats} seats</td>
-                <td><span class="table-badge ${(d.status || '').toLowerCase()}">${esc(d.status)}</span></td>
-                <td>
-                  <div class="table-actions">
-                    ${d.status !== 'FULL' ? `
-                      <button class="btn-admin-outline btn-admin-sm" onclick="toggleDateStatus(${d.id}, 'FULL', ${currentTrek.id})">Mark Full</button>
-                    ` : `
-                      <button class="btn-admin-success btn-admin-sm" onclick="toggleDateStatus(${d.id}, 'AVAILABLE', ${currentTrek.id})">Mark Available</button>
-                    `}
-                    <button class="btn-admin-danger btn-admin-sm" onclick="handleDeleteDate(${d.id}, ${currentTrek.id})">Delete</button>
-                  </div>
-                </td>
-              </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--admin-text-muted)">No weekend dates published yet. Add one above!</td></tr>'}
-          </tbody>
-        </table>
+        <div class="table-scroll-hint"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg> Swipe horizontally &harr; to view all columns</div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Date</th><th>Day</th><th>Availability</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              ${(currentTrek.dates && currentTrek.dates.length) ? currentTrek.dates.map(d => `
+                <tr>
+                  <td><strong>${esc(d.event_date)}</strong></td>
+                  <td>${esc(d.day_of_week)}</td>
+                  <td>${d.available_seats} / ${d.total_seats} seats</td>
+                  <td><span class="table-badge ${(d.status || '').toLowerCase()}">${esc(d.status)}</span></td>
+                  <td>
+                    <div class="table-actions">
+                      ${d.status !== 'FULL' ? `
+                        <button class="btn-admin-outline btn-admin-sm" onclick="toggleDateStatus(${d.id}, 'FULL', ${currentTrek.id})">Mark Full</button>
+                      ` : `
+                        <button class="btn-admin-success btn-admin-sm" onclick="toggleDateStatus(${d.id}, 'AVAILABLE', ${currentTrek.id})">Mark Available</button>
+                      `}
+                      <button class="btn-admin-danger btn-admin-sm" onclick="handleDeleteDate(${d.id}, ${currentTrek.id})">Delete</button>
+                    </div>
+                  </td>
+                </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--admin-text-muted)">No weekend dates published yet. Add one above!</td></tr>'}
+            </tbody>
+          </table>
+        </div>
       </div>`;
   } catch (err) {
     content.innerHTML = '<p style="color:red">Failed: ' + esc(err.message) + '</p>';
@@ -646,31 +700,34 @@ async function renderFeedbackTab() {
           <h3>Customer Reviews Moderation Queue (${list.length})</h3>
           <small style="color:var(--admin-text-muted)">Reviews must be approved before they appear publicly on the website.</small>
         </div>
-        <table class="admin-table">
-          <thead>
-            <tr><th>Customer</th><th>Trek</th><th>Rating</th><th>Review Comment</th><th>Status</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            ${list.length ? list.map(r => `
-              <tr>
-                <td><strong>${esc(r.name)}</strong></td>
-                <td>${esc(r.trek_title || r.trek_name || 'General')}</td>
-                <td style="color:#f59e0b;font-size:1.05rem;letter-spacing:1px">${'\u2605'.repeat(r.rating)}${'\u2606'.repeat(5 - r.rating)}</td>
-                <td style="max-width:320px">${esc(r.comment)}</td>
-                <td><span class="table-badge ${r.approved ? 'active' : 'paused'}">${r.approved ? 'Approved' : 'Pending'}</span></td>
-                <td>
-                  <div class="table-actions">
-                    ${!r.approved ? `
-                      <button class="btn-admin-success btn-admin-sm" onclick="toggleReviewApproval(${r.id}, 1)">Approve</button>
-                    ` : `
-                      <button class="btn-admin-outline btn-admin-sm" onclick="toggleReviewApproval(${r.id}, 0)">Hide</button>
-                    `}
-                    <button class="btn-admin-danger btn-admin-sm" onclick="handleDeleteReview(${r.id})">Delete</button>
-                  </div>
-                </td>
-              </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--admin-text-muted)">No reviews submitted yet.</td></tr>'}
-          </tbody>
-        </table>
+        <div class="table-scroll-hint"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg> Swipe horizontally &harr; to view all columns</div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Customer</th><th>Trek</th><th>Rating</th><th>Review Comment</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              ${list.length ? list.map(r => `
+                <tr>
+                  <td><strong>${esc(r.name)}</strong></td>
+                  <td>${esc(r.trek_title || r.trek_name || 'General')}</td>
+                  <td style="color:#f59e0b;font-size:1.05rem;letter-spacing:1px">${'\u2605'.repeat(r.rating)}${'\u2606'.repeat(5 - r.rating)}</td>
+                  <td style="max-width:320px">${esc(r.comment)}</td>
+                  <td><span class="table-badge ${r.approved ? 'active' : 'paused'}">${r.approved ? 'Approved' : 'Pending'}</span></td>
+                  <td>
+                    <div class="table-actions">
+                      ${!r.approved ? `
+                        <button class="btn-admin-success btn-admin-sm" onclick="toggleReviewApproval(${r.id}, 1)">Approve</button>
+                      ` : `
+                        <button class="btn-admin-outline btn-admin-sm" onclick="toggleReviewApproval(${r.id}, 0)">Hide</button>
+                      `}
+                      <button class="btn-admin-danger btn-admin-sm" onclick="handleDeleteReview(${r.id})">Delete</button>
+                    </div>
+                  </td>
+                </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--admin-text-muted)">No reviews submitted yet.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
       </div>`;
   } catch (err) {
     content.innerHTML = '<p style="color:red">Failed: ' + esc(err.message) + '</p>';
@@ -715,18 +772,21 @@ async function renderFaqsTab() {
     content.innerHTML = `
       <div class="admin-panel">
         <div class="admin-panel-head"><h3>Trek FAQs</h3></div>
-        <table class="admin-table">
-          <thead><tr><th>Trek</th><th>Question</th><th>Answer</th><th>Actions</th></tr></thead>
-          <tbody>
-            ${allFaqs.length ? allFaqs.map(f => `
-              <tr>
-                <td><strong>${esc(f.trek_name)}</strong></td>
-                <td>${esc(f.question)}</td>
-                <td>${esc(f.answer)}</td>
-                <td><button class="btn-admin-danger btn-admin-sm" onclick="handleDeleteFaq(${f.id})">Delete</button></td>
-              </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--admin-text-muted)">No FAQs yet. Add one with the button above!</td></tr>'}
-          </tbody>
-        </table>
+        <div class="table-scroll-hint"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg> Swipe horizontally &harr; to view all columns</div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead><tr><th>Trek</th><th>Question</th><th>Answer</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${allFaqs.length ? allFaqs.map(f => `
+                <tr>
+                  <td><strong>${esc(f.trek_name)}</strong></td>
+                  <td>${esc(f.question)}</td>
+                  <td>${esc(f.answer)}</td>
+                  <td><button class="btn-admin-danger btn-admin-sm" onclick="handleDeleteFaq(${f.id})">Delete</button></td>
+                </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--admin-text-muted)">No FAQs yet. Add one with the button above!</td></tr>'}
+            </tbody>
+          </table>
+        </div>
       </div>`;
   } catch (err) {
     content.innerHTML = '<p style="color:red">Failed: ' + esc(err.message) + '</p>';
@@ -842,9 +902,9 @@ async function renderBookingsTab(filterStatus = currentBookingsStatus, searchQue
             <h3>Online Reservations &amp; Razorpay Payments</h3>
             <small style="color:var(--admin-text-muted)">Real-time customer registrations, payment proofs, and booking vouchers.</small>
           </div>
-          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
-            <input type="text" id="bookingSearchInput" placeholder="Search by name, phone, code..." value="${esc(searchQuery)}" onkeyup="if(event.key==='Enter') applyBookingsFilter()" style="padding:0.5rem 0.8rem;border:1px solid var(--admin-border);border-radius:8px;font-size:0.85rem;width:240px">
-            <select id="bookingStatusSelect" onchange="applyBookingsFilter()" style="padding:0.5rem 0.8rem;border:1px solid var(--admin-border);border-radius:8px;font-size:0.85rem">
+          <div class="booking-filter-bar">
+            <input type="text" id="bookingSearchInput" class="booking-search-input" placeholder="Search by name, phone, code..." value="${esc(searchQuery)}" onkeyup="if(event.key==='Enter') applyBookingsFilter()">
+            <select id="bookingStatusSelect" class="booking-status-select" onchange="applyBookingsFilter()">
               <option value="all" ${filterStatus === 'all' ? 'selected' : ''}>All Statuses</option>
               <option value="PAID" ${filterStatus === 'PAID' ? 'selected' : ''}>PAID (Confirmed)</option>
               <option value="PENDING" ${filterStatus === 'PENDING' ? 'selected' : ''}>PENDING</option>
@@ -855,67 +915,70 @@ async function renderBookingsTab(filterStatus = currentBookingsStatus, searchQue
           </div>
         </div>
 
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Booking Ref</th>
-              <th>Trek &amp; Batch</th>
-              <th>Customer Details</th>
-              <th>Seats &amp; Fee</th>
-              <th>Gateway Ref</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${bookings.length ? bookings.map(b => `
+        <div class="table-scroll-hint"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg> Swipe horizontally &harr; to view all columns</div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
               <tr>
-                <td>
-                  <strong style="font-family:monospace;font-size:0.92rem;color:var(--admin-accent)">${esc(b.booking_code)}</strong>
-                  <br><small style="color:var(--admin-text-muted)">${new Date(b.created_at || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</small>
-                </td>
-                <td>
-                  <strong>${esc(b.trek_name)}</strong>
-                  <br><small style="color:var(--admin-text-muted)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${esc(b.batch_date)}</small>
-                </td>
-                <td>
-                  <strong>${esc(b.customer_name)}</strong> ${b.customer_age ? `<span style="font-size:0.75rem;background:#e2e8f0;padding:1px 6px;border-radius:4px;color:#334155;margin-left:4px;font-weight:600">${esc(b.customer_age)} yrs</span>` : ''}
-                  <br><small style="color:var(--admin-text-muted)"><a href="https://wa.me/${esc(b.customer_phone.replace(/[^0-9]/g, ''))}" target="_blank" style="color:var(--admin-success);font-weight:600">${esc(b.customer_phone)}</a></small>
-                  ${b.customer_email ? `<br><small style="color:var(--admin-text-muted)">${esc(b.customer_email)}</small>` : ''}
-                </td>
-                <td>
-                  <strong>${esc(b.participants)} Seat${b.participants > 1 ? 's' : ''}</strong>
-                  <br><span style="font-weight:700;color:${b.payment_status === 'PAID' ? 'var(--admin-success)' : 'inherit'}">&#8377;${Number(b.total_amount).toLocaleString('en-IN')}</span>
-                </td>
-                <td>
-                  <small style="display:block;color:var(--admin-text-muted)">Method: <code>${esc(b.payment_method || 'razorpay')}</code></small>
-                  ${b.razorpay_payment_id ? `<code style="font-size:0.75rem;color:var(--admin-success)">${esc(b.razorpay_payment_id)}</code>` : `<code style="font-size:0.75rem;color:var(--admin-text-muted)">${esc(b.razorpay_order_id || '—')}</code>`}
-                </td>
-                <td>
-                  <span class="table-badge ${b.payment_status === 'PAID' ? 'active' : (b.payment_status === 'PENDING' ? 'paused' : 'full')}">${esc(b.payment_status)}</span>
-                </td>
-                <td>
-                  <div class="table-actions">
-                    <button class="btn-admin-outline btn-admin-sm" onclick="openBookingDetailsModal(${b.id})">Details</button>
-                    ${b.payment_status !== 'PAID' ? `
-                      <button class="btn-admin-success btn-admin-sm" onclick="handleUpdateBookingStatus(${b.id}, 'PAID')">Mark Paid</button>
-                    ` : `
-                      <button class="btn-admin-danger btn-admin-sm" onclick="handleUpdateBookingStatus(${b.id}, 'CANCELLED')">Cancel</button>
-                    `}
-                  </div>
-                </td>
+                <th>Booking Ref</th>
+                <th>Trek &amp; Batch</th>
+                <th>Customer Details</th>
+                <th>Seats &amp; Fee</th>
+                <th>Gateway Ref</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            `).join('') : `
-              <tr>
-                <td colspan="7" style="text-align:center;padding:3rem 1rem;color:var(--admin-text-muted)">
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 0.75rem;color:var(--admin-text-muted);display:block"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                  <strong>No bookings found matching your criteria.</strong>
-                  <p style="font-size:0.85rem;margin-top:0.35rem">Try testing a booking on the public website with Razorpay Test Mode.</p>
-                </td>
-              </tr>
-            `}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${bookings.length ? bookings.map(b => `
+                <tr>
+                  <td>
+                    <strong style="font-family:monospace;font-size:0.92rem;color:var(--admin-accent)">${esc(b.booking_code)}</strong>
+                    <br><small style="color:var(--admin-text-muted)">${new Date(b.created_at || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</small>
+                  </td>
+                  <td>
+                    <strong>${esc(b.trek_name)}</strong>
+                    <br><small style="color:var(--admin-text-muted)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${esc(b.batch_date)}</small>
+                  </td>
+                  <td>
+                    <strong>${esc(b.customer_name)}</strong> ${b.customer_age ? `<span style="font-size:0.75rem;background:#e2e8f0;padding:1px 6px;border-radius:4px;color:#334155;margin-left:4px;font-weight:600">${esc(b.customer_age)} yrs</span>` : ''}
+                    <br><small style="color:var(--admin-text-muted)"><a href="https://wa.me/${esc(b.customer_phone.replace(/[^0-9]/g, ''))}" target="_blank" style="color:var(--admin-success);font-weight:600">${esc(b.customer_phone)}</a></small>
+                    ${b.customer_email ? `<br><small style="color:var(--admin-text-muted)">${esc(b.customer_email)}</small>` : ''}
+                  </td>
+                  <td>
+                    <strong>${esc(b.participants)} Seat${b.participants > 1 ? 's' : ''}</strong>
+                    <br><span style="font-weight:700;color:${b.payment_status === 'PAID' ? 'var(--admin-success)' : 'inherit'}">&#8377;${Number(b.total_amount).toLocaleString('en-IN')}</span>
+                  </td>
+                  <td>
+                    <small style="display:block;color:var(--admin-text-muted)">Method: <code>${esc(b.payment_method || 'razorpay')}</code></small>
+                    ${b.razorpay_payment_id ? `<code style="font-size:0.75rem;color:var(--admin-success)">${esc(b.razorpay_payment_id)}</code>` : `<code style="font-size:0.75rem;color:var(--admin-text-muted)">${esc(b.razorpay_order_id || '—')}</code>`}
+                  </td>
+                  <td>
+                    <span class="table-badge ${b.payment_status === 'PAID' ? 'active' : (b.payment_status === 'PENDING' ? 'paused' : 'full')}">${esc(b.payment_status)}</span>
+                  </td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn-admin-outline btn-admin-sm" onclick="openBookingDetailsModal(${b.id})">Details</button>
+                      ${b.payment_status !== 'PAID' ? `
+                        <button class="btn-admin-success btn-admin-sm" onclick="handleUpdateBookingStatus(${b.id}, 'PAID')">Mark Paid</button>
+                      ` : `
+                        <button class="btn-admin-danger btn-admin-sm" onclick="handleUpdateBookingStatus(${b.id}, 'CANCELLED')">Cancel</button>
+                      `}
+                    </div>
+                  </td>
+                </tr>
+              `).join('') : `
+                <tr>
+                  <td colspan="7" style="text-align:center;padding:3rem 1rem;color:var(--admin-text-muted)">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 0.75rem;color:var(--admin-text-muted);display:block"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    <strong>No bookings found matching your criteria.</strong>
+                    <p style="font-size:0.85rem;margin-top:0.35rem">Try testing a booking on the public website with Razorpay Test Mode.</p>
+                  </td>
+                </tr>
+              `}
+            </tbody>
+          </table>
+        </div>
       </div>`;
   } catch (err) {
     content.innerHTML = '<p style="color:red">Failed to load bookings: ' + esc(err.message) + '</p>';
@@ -961,7 +1024,7 @@ async function openBookingDetailsModal(id) {
       </div>
 
       <div style="background:#f8fafc;border:1px solid var(--admin-border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+        <div class="modal-details-grid">
           <div><small style="color:var(--admin-text-muted);display:block">Trail Name</small><strong>${esc(b.trek_name)}</strong></div>
           <div><small style="color:var(--admin-text-muted);display:block">Batch Date</small><strong>${esc(b.batch_date)}</strong></div>
           <div><small style="color:var(--admin-text-muted);display:block">Customer Name</small><strong>${esc(b.customer_name)}</strong></div>
@@ -1578,6 +1641,10 @@ async function handleChangePassword(e) {
   } catch (err) { alert('Failed: ' + err.message); }
 }
 
-function closeAdminModal() { document.getElementById('adminModal').classList.remove('open'); }
+function closeAdminModal() {
+  const modal = document.getElementById('adminModal');
+  if (modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
 window.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdminModal(); });
 document.addEventListener('DOMContentLoaded', checkAuth);

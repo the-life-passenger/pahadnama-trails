@@ -65,14 +65,20 @@
   <!-- ADMIN APP WRAPPER -->
   <div id="adminApp" class="admin-app-layout hidden">
     
+    <!-- Mobile Drawer Backdrop -->
+    <div id="adminSidebarBackdrop" class="admin-sidebar-backdrop" onclick="toggleAdminMobileMenu(false)"></div>
+
     <!-- Sidebar Navigation -->
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-header">
-        <img src="/brand/pahadnama-logo.png" alt="Pahadnama Logo" class="admin-nav-logo">
-        <div>
-          <h3 class="admin-nav-title">PAHADNAMA</h3>
-          <span class="admin-nav-sub">OPERATIONS CONSOLE</span>
+        <div style="display:flex;align-items:center;gap:0.85rem;min-width:0">
+          <img src="/brand/pahadnama-logo.png" alt="Pahadnama Logo" class="admin-nav-logo">
+          <div>
+            <h3 class="admin-nav-title">PAHADNAMA</h3>
+            <span class="admin-nav-sub">OPERATIONS CONSOLE</span>
+          </div>
         </div>
+        <button type="button" class="sidebar-close-btn" onclick="toggleAdminMobileMenu(false)" aria-label="Close navigation menu">&times;</button>
       </div>
 
       <nav class="admin-nav">
@@ -118,9 +124,18 @@
     <!-- Main Content Area -->
     <main class="admin-main">
       <header class="admin-topbar">
-        <div>
-          <span class="topbar-subtitle">CONTROL PANEL</span>
-          <h1 class="topbar-title" id="pageTitle">Dashboard Overview</h1>
+        <div class="topbar-left">
+          <button type="button" class="btn-mobile-menu" onclick="toggleAdminMobileMenu(true)" aria-label="Open menu" title="Open navigation">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="topbar-title-wrap">
+            <span class="topbar-subtitle">CONTROL PANEL</span>
+            <h1 class="topbar-title" id="pageTitle">Dashboard Overview</h1>
+          </div>
         </div>
         <div class="topbar-actions" id="topbarActions">
           <button class="btn-admin-primary" onclick="openAddTrekModal()">
@@ -129,6 +144,19 @@
         </div>
       </header>
 
+      <!-- Mobile Horizontal Quick-Tabs -->
+      <nav class="admin-mobile-tabs" id="mobileQuickTabs" aria-label="Quick Section Navigation">
+        <button class="mobile-tab-pill active" data-tab="overview">Overview</button>
+        <button class="mobile-tab-pill" data-tab="treks">Treks</button>
+        <button class="mobile-tab-pill" data-tab="bookings">Bookings</button>
+        <button class="mobile-tab-pill" data-tab="dates">Weekend Slots</button>
+        <button class="mobile-tab-pill" data-tab="photos">Gallery</button>
+        <button class="mobile-tab-pill" data-tab="feedback">Reviews</button>
+        <button class="mobile-tab-pill" data-tab="faqs">FAQs</button>
+        <button class="mobile-tab-pill" data-tab="settings">Settings</button>
+        <button class="mobile-tab-pill" data-tab="security">Security</button>
+      </nav>
+
       <div class="admin-container" id="adminContent">
         <!-- Content dynamic injected via admin.js -->
       </div>
@@ -136,7 +164,7 @@
   </div>
 
   <!-- ADMIN GENERIC MODAL -->
-  <div class="admin-modal-overlay" id="adminModal" aria-hidden="true">
+  <div class="admin-modal-overlay" id="adminModal" aria-hidden="true" onclick="handleAdminModalOverlayClick(event)">
     <div class="admin-modal-dialog" id="adminModalDialog">
       <button class="admin-modal-close" onclick="closeAdminModal()">&times;</button>
       <div id="adminModalBody"></div>
