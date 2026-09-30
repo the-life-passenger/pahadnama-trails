@@ -52,7 +52,11 @@ const upload = multer({
 
 // Admin authentication middleware
 function requireAdmin(req, res, next) {
-  const token = req.cookies.admin_session || req.headers['x-admin-token'];
+  let token = req.cookies.admin_session || req.headers['x-admin-token'];
+  if (!token && req.headers['authorization']) {
+    const parts = req.headers['authorization'].split(' ');
+    if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') token = parts[1];
+  }
   if (token && adminSessions.has(token)) {
     return next();
   }
@@ -254,10 +258,15 @@ app.post('/api/payments/create-order', async (req, res) => {
 
     let razorpayOrderId = null;
     let isDemoFallback = false;
+    let razorpayErrorMsg = null;
 
-    if (keyId && keySecret && !keyId.includes('demo') && !keySecret.includes('demo')) {
+    const isDummyCredentials = !keyId || !keySecret || 
+      keyId.trim() === '' || keySecret.trim() === '' || 
+      keyId === 'rzp_test_5172839485' || keySecret === 'rzp_test_secret_demo';
+
+    if (!isDummyCredentials) {
       try {
-        const auth = 'Basic ' + Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+        const auth = 'Basic ' + Buffer.from(`${keyId.trim()}:${keySecret.trim()}`).toString('base64');
         const rzpResponse = await fetch('https://api.razorpay.com/v1/orders', {
           method: 'POST',
           headers: {
@@ -280,12 +289,15 @@ app.post('/api/payments/create-order', async (req, res) => {
         const rzpData = await rzpResponse.json();
         if (rzpResponse.ok && rzpData && rzpData.id) {
           razorpayOrderId = rzpData.id;
+          isDemoFallback = false;
         } else {
-          console.warn('Razorpay API error or invalid test keys, falling back to simulated test order:', rzpData);
+          razorpayErrorMsg = (rzpData && rzpData.error && (rzpData.error.description || rzpData.error.reason)) || 'Razorpay order creation failed';
+          console.warn('Razorpay API error or invalid test keys, falling back to simulated test order:', razorpayErrorMsg);
           razorpayOrderId = `order_test_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
           isDemoFallback = true;
         }
       } catch (err) {
+        razorpayErrorMsg = err.message;
         console.warn('Network error reaching Razorpay API, activating simulated test order:', err.message);
         razorpayOrderId = `order_test_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
         isDemoFallback = true;
@@ -334,6 +346,7 @@ app.post('/api/payments/create-order', async (req, res) => {
       currency: s.razorpay_currency || 'INR',
       key_id: keyId,
       is_demo: isDemoFallback,
+      razorpay_error: razorpayErrorMsg,
       customer: {
         name: customer_name,
         phone: customer_phone,
@@ -373,7 +386,7 @@ app.post('/api/payments/verify', (req, res) => {
 
     // Verify cryptographic HMAC-SHA256 signature
     let isValid = false;
-    if (keySecret) {
+    if (keySecret && keySecret !== 'rzp_test_secret_demo') {
       const generatedSignature = crypto
         .createHmac('sha256', keySecret)
         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
@@ -983,6 +996,67 @@ app.delete('/api/admin/settings/background', requireAdmin, (req, res) => {
   } catch (err) {
     console.error('Error removing background image:', err);
     res.status(500).json({ error: 'Failed to remove background image: ' + err.message });
+  }
+});
+
+// Payments management: Test Razorpay API credentials live
+app.post('/api/admin/payments/test-keys', requireAdmin, async (req, res) => {
+  try {
+    const { key_id, key_secret } = req.body;
+    if (!key_id || !key_secret) {
+      return res.status(400).json({ ok: false, error: 'Key ID and Key Secret are both required.' });
+    }
+
+    const cleanKeyId = key_id.trim();
+    const cleanKeySecret = key_secret.trim();
+
+    if (cleanKeyId === 'rzp_test_5172839485' || cleanKeySecret === 'rzp_test_secret_demo') {
+      return res.status(400).json({
+        ok: false,
+        error: 'Ye default placeholder dummy keys hain. Kripya dashboard.razorpay.com se apni asli Test Key ID (rzp_test_...) aur Secret generate karke enter karein.'
+      });
+    }
+
+    const auth = 'Basic ' + Buffer.from(`${cleanKeyId}:${cleanKeySecret}`).toString('base64');
+    const rzpResponse = await fetch('https://api.razorpay.com/v1/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': auth
+      },
+      body: JSON.stringify({
+        amount: 100, // ₹1 test order in paise
+        currency: 'INR',
+        receipt: 'test_conn_' + Date.now().toString(36),
+        notes: {
+          purpose: 'Pahadnama Admin Razorpay Connection Verification'
+        }
+      })
+    });
+
+    const data = await rzpResponse.json();
+    if (rzpResponse.ok && data && data.id) {
+      return res.json({
+        ok: true,
+        message: 'Razorpay Test Gateway se successfully connect ho gaya! Real test popup ready hai.',
+        order_id: data.id,
+        key_id: cleanKeyId,
+        is_test_mode: cleanKeyId.startsWith('rzp_test_')
+      });
+    } else {
+      const errMsg = (data && data.error && (data.error.description || data.error.reason)) || 'Razorpay authentication failed.';
+      return res.status(400).json({
+        ok: false,
+        error: errMsg,
+        details: data
+      });
+    }
+  } catch (err) {
+    console.error('Error testing Razorpay keys:', err);
+    return res.status(500).json({
+      ok: false,
+      error: 'Razorpay server se sampark nahi ho saka: ' + err.message
+    });
   }
 });
 

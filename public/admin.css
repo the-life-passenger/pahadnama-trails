@@ -414,3 +414,133 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .form-grid { grid-template-columns: 1fr; }
 }
+
+/* Razorpay Test Gateway Admin UI */
+.rzp-guide-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid var(--admin-accent);
+  border-radius: 8px;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.rzp-guide-card h4 {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.rzp-guide-steps {
+  margin: 0.5rem 0 0 1.2rem;
+  font-size: 0.84rem;
+  color: #334155;
+  line-height: 1.6;
+}
+.rzp-guide-steps li {
+  margin-bottom: 0.35rem;
+}
+.rzp-guide-steps a {
+  color: var(--admin-accent);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.rzp-cheat-sheet {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  margin-top: 1.2rem;
+  font-size: 0.82rem;
+  color: #334155;
+  border: 1px dashed #cbd5e1;
+}
+.rzp-cheat-sheet code {
+  background: #ffffff;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: monospace;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-input-wrapper input {
+  padding-right: 2.75rem;
+}
+.password-toggle-btn {
+  position: absolute;
+  right: 0.6rem;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+.password-toggle-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.btn-admin-verify {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border: 1px solid #1e293b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-admin-verify:hover {
+  background: #1e293b;
+  border-color: #334155;
+}
+.btn-admin-verify:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.status-box-pending {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  padding: 0.85rem 1.1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 0.86rem;
+}
+.status-box-success {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  padding: 0.85rem 1.1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 0.86rem;
+}
+.status-box-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 0.85rem 1.1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 0.86rem;
+}

@@ -869,16 +869,21 @@ async function handleRazorpayPayNow(e) {
         }
       };
 
-      const rzpInstance = new window.Razorpay(options);
-      rzpInstance.on('payment.failed', function (failResp) {
-        alert('Payment declined: ' + (failResp.error?.description || 'Transaction failed'));
-        submitBtn.disabled = false;
-        updatePaymentTotal();
-      });
-      rzpInstance.open();
+      try {
+        const rzpInstance = new window.Razorpay(options);
+        rzpInstance.on('payment.failed', function (failResp) {
+          alert('Payment declined: ' + (failResp.error?.description || 'Transaction failed'));
+          submitBtn.disabled = false;
+          updatePaymentTotal();
+        });
+        rzpInstance.open();
+      } catch (rzpErr) {
+        console.error('Razorpay popup error:', rzpErr);
+        renderTestModePaymentPrompt(orderData, total_amount, customer_name, customer_phone, batch_date, participants, rzpErr.message);
+      }
     } else {
       // Test Mode Simulator Dialog (Works seamlessly with test mode keys, demo keys, or local environments)
-      renderTestModePaymentPrompt(orderData, total_amount, customer_name, customer_phone, batch_date, participants);
+      renderTestModePaymentPrompt(orderData, total_amount, customer_name, customer_phone, batch_date, participants, orderData.razorpay_error);
     }
   } catch (err) {
     alert('Payment Initiation Failed: ' + err.message);
@@ -888,14 +893,20 @@ async function handleRazorpayPayNow(e) {
 }
 
 // Render test mode prompt for safe sandbox simulation
-function renderTestModePaymentPrompt(orderData, totalAmount, name, phone, dateStr, participants) {
+function renderTestModePaymentPrompt(orderData, totalAmount, name, phone, dateStr, participants, errorDetail) {
   const content = document.getElementById('bookingModalContent');
   content.innerHTML = `
     <div class="modal-head" style="text-align:center">
-      <div class="badge-tag">RAZORPAY TEST ENVIRONMENT</div>
+      <div class="badge-tag">RAZORPAY DEMO / TEST GATEWAY</div>
       <h3>Simulate Test Mode Payment</h3>
-      <p>Testing sandbox online payment of <strong>${formatInr(totalAmount)}</strong> for ${esc(currentTrek.name)}.</p>
+      <p>Testing sandbox online payment of <strong>${formatInr(totalAmount)}</strong> for ${esc(currentTrek?.name || 'Sahyadri Trek')}.</p>
     </div>
+
+    ${errorDetail ? `
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-sm);padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.84rem;color:#991b1b">
+        <strong>Razorpay API Notice:</strong> ${esc(errorDetail)}
+      </div>
+    ` : ''}
 
     <div class="rzp-simulator-card">
       <div class="simulator-row">
@@ -920,9 +931,11 @@ function renderTestModePaymentPrompt(orderData, totalAmount, name, phone, dateSt
       </div>
     </div>
 
-    <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:var(--radius-sm);padding:0.9rem 1.1rem;margin-bottom:1.5rem;font-size:0.86rem;color:#92400e;display:flex;gap:0.6rem;align-items:flex-start">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span>This is Razorpay Test Mode. No real money will be charged from any card or bank account. Clicking below will verify the cryptographic payment record and issue your official voucher.</span>
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius-sm);padding:0.85rem 1.1rem;margin-bottom:1.2rem;font-size:0.84rem;color:#1e40af;line-height:1.5">
+      <strong>💡 Official Razorpay Checkout Popup Note:</strong>
+      <p style="margin:0.25rem 0 0 0">
+        Asli Razorpay popup (cards, UPI modal, netbanking) chalane ke liye <a href="/admin" target="_blank" style="color:#2563eb;text-decoration:underline;font-weight:700">Admin Panel (/admin)</a> &rarr; <strong>Booking Settings</strong> mein jaakar apni free Razorpay Test Keys (<code>rzp_test_...</code>) daalein aur '⚡ Test Connection' karein.
+      </p>
     </div>
 
     <div style="display:flex;gap:0.75rem;flex-direction:column">
@@ -930,11 +943,64 @@ function renderTestModePaymentPrompt(orderData, totalAmount, name, phone, dateSt
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
         <span>Complete Test Mode Payment (${formatInr(totalAmount)}) &rarr;</span>
       </button>
+
+      ${orderData.key_id ? `
+        <button class="btn btn-outline w-full" style="display:inline-flex;align-items:center;justify-content:center;gap:0.4rem;font-size:0.86rem" onclick="forceOpenRazorpayCheckout('${esc(orderData.key_id)}', ${orderData.amount}, '${esc(orderData.booking_code)}', '${esc(name)}', '${esc(phone)}')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span>Attempt Official Razorpay Popup Modal</span>
+        </button>
+      ` : ''}
+
       <button class="btn btn-outline w-full" onclick="openPaymentOptions()">
         &larr; Back to Payment Options
       </button>
     </div>
   `;
+}
+
+function forceOpenRazorpayCheckout(keyId, amount, bookingCode, name, phone) {
+  if (typeof window.Razorpay !== 'function') {
+    alert('Razorpay script is not ready. Please refresh or check connection.');
+    return;
+  }
+  try {
+    const opts = {
+      key: keyId,
+      amount: amount,
+      currency: 'INR',
+      name: 'Pahadnama Trails',
+      description: `${currentTrek?.name || 'Sahyadri Trek'} (Test Mode)`,
+      image: '/brand/pahadnama-logo.png',
+      prefill: {
+        name: name,
+        contact: phone
+      },
+      theme: {
+        color: '#d76d2e'
+      },
+      handler: async function (resp) {
+        showToast('Payment successful via Razorpay popup!');
+        await verifyPaymentOnBackend(
+          bookingCode,
+          resp.razorpay_order_id || `order_test_${Date.now()}`,
+          resp.razorpay_payment_id || `pay_test_${Date.now()}`,
+          resp.razorpay_signature || 'demo_test_signature'
+        );
+      },
+      modal: {
+        ondismiss: function () {
+          showToast('Checkout window closed.');
+        }
+      }
+    };
+    const rzp = new window.Razorpay(opts);
+    rzp.on('payment.failed', function (failResp) {
+      alert('Payment declined: ' + (failResp.error?.description || 'Transaction failed'));
+    });
+    rzp.open();
+  } catch (err) {
+    alert('Could not open Razorpay checkout: ' + err.message);
+  }
 }
 
 async function triggerSimulatedPaymentSuccess(bookingCode, orderId) {

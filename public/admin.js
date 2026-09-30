@@ -1075,11 +1075,36 @@ async function renderSettingsTab() {
       <div class="admin-panel" style="max-width:800px">
         <div class="admin-panel-head">
           <div>
-            <h3>Razorpay Payment Gateway (Test Mode)</h3>
-            <small style="color:var(--admin-text-muted)">Configure your Razorpay API Test Mode credentials for online UPI, Card, and NetBanking checkout.</small>
+            <h3>💳 Razorpay Real Test Gateway (Official Demo Mode)</h3>
+            <small style="color:var(--admin-text-muted)">Connect your official Razorpay Test Mode keys to open the real Razorpay Checkout popup (Cards, UPI, Netbanking simulation).</small>
           </div>
-          <span class="table-badge ${s.razorpay_enabled === 'false' ? 'paused' : 'active'}">${s.razorpay_enabled === 'false' ? 'DISABLED' : 'TEST MODE ACTIVE'}</span>
+          <span class="table-badge ${s.razorpay_enabled === 'false' ? 'paused' : ((s.razorpay_key_id && s.razorpay_key_id !== 'rzp_test_5172839485' && s.razorpay_key_secret && s.razorpay_key_secret !== 'rzp_test_secret_demo') ? 'active' : 'fast_filling')}">
+            ${s.razorpay_enabled === 'false' ? 'DISABLED' : ((s.razorpay_key_id && s.razorpay_key_id !== 'rzp_test_5172839485' && s.razorpay_key_secret && s.razorpay_key_secret !== 'rzp_test_secret_demo') ? '⚡ REAL TEST GATEWAY ACTIVE' : '⚠️ DEMO PLACEHOLDER')}
+          </span>
         </div>
+
+        <!-- 2-Minute Setup Guide -->
+        <div class="rzp-guide-card">
+          <h4>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            Asli Razorpay Test Gateway Kaise Chalu Karein (2-Minute Free Setup)
+          </h4>
+          <p style="font-size:0.84rem;color:#475569;margin-top:0.25rem">
+            Razorpay ka real checkout popup chalane ke liye aapko free Test Keys chahiye hoti hain. Iske liye koi bank account ya KYC verification ki zaroorat nahi hai:
+          </p>
+          <ol class="rzp-guide-steps">
+            <li>
+              <a href="https://dashboard.razorpay.com/app/keys" target="_blank" rel="noopener">
+                <strong>dashboard.razorpay.com/app/keys</strong> &rarr;
+              </a> par jayein aur free account banayein ya login karein.
+            </li>
+            <li>Top-right header mein toggle ko <strong>"Test Mode"</strong> par switch karein.</li>
+            <li>Left sidebar: <strong>Account &amp; Settings &rarr; API Keys</strong> par jakar <strong>"Generate Test Key"</strong> button par click karein.</li>
+            <li>Wahan se <strong>Key ID</strong> (starts with <code>rzp_test_...</code>) aur <strong>Key Secret</strong> copy karein.</li>
+            <li>Niche diye gaye box mein paste karke <strong>"Save Razorpay Settings"</strong> karein, phir <strong>"⚡ Test Razorpay Connection"</strong> button dabayein!</li>
+          </ol>
+        </div>
+
         <form onsubmit="handleSaveSettings(event)">
           <div class="admin-form-group">
             <label>Razorpay Online Checkout</label>
@@ -1090,20 +1115,59 @@ async function renderSettingsTab() {
           </div>
           <div class="admin-form-group">
             <label>Razorpay Key ID (Test Mode Key)</label>
-            <input type="text" name="razorpay_key_id" value="${esc(s.razorpay_key_id || 'rzp_test_5172839485')}" placeholder="rzp_test_..." required>
-            <small>Found in your Razorpay Dashboard &rarr; Account &amp; Settings &rarr; API Keys (in Test Mode).</small>
+            <input type="text" id="rzpKeyIdInput" name="razorpay_key_id" value="${esc(s.razorpay_key_id || 'rzp_test_5172839485')}" placeholder="rzp_test_xxxxxxxxxxxxxx" required>
+            <small>Aapke Razorpay Dashboard se generated Test Key ID (starts with <code>rzp_test_</code>).</small>
           </div>
           <div class="admin-form-group">
             <label>Razorpay Key Secret (Test Mode Secret)</label>
-            <input type="password" name="razorpay_key_secret" value="${esc(s.razorpay_key_secret || 'rzp_test_secret_demo')}" placeholder="Enter test key secret" required>
-            <small>Secret key used for HMAC-SHA256 signature verification. Kept strictly private on server.</small>
+            <div class="password-input-wrapper">
+              <input type="password" id="rzpKeySecretInput" name="razorpay_key_secret" value="${esc(s.razorpay_key_secret || 'rzp_test_secret_demo')}" placeholder="Enter test key secret" required>
+              <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('rzpKeySecretInput', this)" title="Show/Hide Key Secret">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <small>HMAC-SHA256 signature verification ke liye use hota hai. Server par bilkul safe rehta hai.</small>
           </div>
           <div class="admin-form-group">
             <label>Currency Code</label>
             <input type="text" name="razorpay_currency" value="${esc(s.razorpay_currency || 'INR')}" required>
           </div>
-          <button type="submit" class="btn-admin-primary" style="margin-top:0.5rem">Save Razorpay Settings</button>
+
+          <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-top:1.2rem">
+            <button type="submit" class="btn-admin-primary">
+              <span>Save Razorpay Settings</span>
+            </button>
+            <button type="button" class="btn-admin-verify" id="btnTestRzpConn" onclick="handleTestRazorpayKeys()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>⚡ Test Razorpay Connection</span>
+            </button>
+          </div>
+
+          <!-- Dynamic Connection Status Container -->
+          <div id="rzpConnectionStatus" style="display:none"></div>
         </form>
+
+        <!-- Testing Cheat Sheet -->
+        <div class="rzp-cheat-sheet">
+          <div style="font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.4rem;color:#0f172a">
+            <span>🧪</span> Razorpay Test Credentials (Website Pe Test Karne Ke Liye):
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:0.6rem">
+            <div>
+              <strong>Test Card:</strong> <code>4111 1111 1111 1111</code><br>
+              <span style="font-size:0.75rem;color:var(--admin-text-muted)">Expiry: 12/30 &bull; CVV: 123 &bull; OTP: Click "Success"</span>
+            </div>
+            <div>
+              <strong>Test UPI:</strong> <code>success@razorpay</code><br>
+              <span style="font-size:0.75rem;color:var(--admin-text-muted)">UPI tab mein ye ID daalkar test karein</span>
+            </div>
+            <div>
+              <strong>NetBanking / Wallets:</strong><br>
+              <span style="font-size:0.75rem;color:var(--admin-text-muted)">Koi bhi bank select karein aur "Success" click karein</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
         <hr style="margin:2.5rem 0;border:none;border-top:1px solid var(--admin-border)">
 
@@ -1204,6 +1268,101 @@ async function handleSaveSettings(e) {
     showToast('Settings saved!');
     renderSettingsTab();
   } catch (err) { alert('Failed: ' + err.message); }
+}
+
+function toggleSecretVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+    btn.title = "Hide Key Secret";
+  } else {
+    input.type = 'password';
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    btn.title = "Show Key Secret";
+  }
+}
+
+async function handleTestRazorpayKeys() {
+  const statusEl = document.getElementById('rzpConnectionStatus');
+  const keyIdInput = document.getElementById('rzpKeyIdInput');
+  const keySecretInput = document.getElementById('rzpKeySecretInput');
+  const btn = document.getElementById('btnTestRzpConn');
+
+  const key_id = keyIdInput ? keyIdInput.value.trim() : '';
+  const key_secret = keySecretInput ? keySecretInput.value.trim() : '';
+
+  if (!key_id || !key_secret) {
+    alert('Please enter both Key ID and Key Secret to test connection.');
+    return;
+  }
+
+  if (key_id === 'rzp_test_5172839485' || key_secret === 'rzp_test_secret_demo') {
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.className = 'status-box-error';
+      statusEl.innerHTML = `
+        <strong>⚠️ Placeholder Dummy Keys Detected!</strong>
+        <p style="margin:0.3rem 0 0 0">Ye sample placeholder keys hain. Official Razorpay Test Checkout popup chalane ke liye kripya <a href="https://dashboard.razorpay.com/app/keys" target="_blank" style="text-decoration:underline;font-weight:700">dashboard.razorpay.com/app/keys</a> se apni free Test Key ID aur Secret copy karke yahan enter karein.</p>
+      `;
+    }
+    return;
+  }
+
+  if (statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.className = 'status-box-pending';
+    statusEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:0.6rem">
+        <span>⏳ Testing live API connection with Razorpay servers (api.razorpay.com)...</span>
+      </div>
+    `;
+  }
+
+  if (btn) btn.disabled = true;
+
+  try {
+    const res = await adminApi('/api/admin/payments/test-keys', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key_id, key_secret })
+    });
+
+    if (res.ok) {
+      if (statusEl) {
+        statusEl.className = 'status-box-success';
+        statusEl.innerHTML = `
+          <div style="display:flex;gap:0.6rem;align-items:flex-start">
+            <span style="font-size:1.2rem;line-height:1">✅</span>
+            <div>
+              <strong>Connection Successful! Razorpay Test Gateway is Active &amp; Ready.</strong>
+              <p style="margin:0.25rem 0 0 0;font-size:0.84rem">Test Order ID successfully created: <code>${esc(res.order_id)}</code>. Website par user jab bhi booking karega, official Razorpay Checkout popup open hoga aur test cards / test UPI se payment test ho sakegi.</p>
+            </div>
+          </div>
+        `;
+      }
+      showToast('Razorpay Connection Verified!');
+    } else {
+      throw new Error(res.error || 'Connection failed');
+    }
+  } catch (err) {
+    if (statusEl) {
+      statusEl.className = 'status-box-error';
+      statusEl.innerHTML = `
+        <div style="display:flex;gap:0.6rem;align-items:flex-start">
+          <span style="font-size:1.2rem;line-height:1">❌</span>
+          <div>
+            <strong>Razorpay Connection Failed:</strong>
+            <p style="margin:0.25rem 0 0 0;font-size:0.84rem">${esc(err.message)}</p>
+            <small style="display:block;margin-top:0.35rem;color:#7f1d1d">Check karein ki aapne Dashboard par "Test Mode" toggle on rakha hai aur Key ID &amp; Secret sahi copy kiya hai.</small>
+          </div>
+        </div>
+      `;
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 function syncBgColorPicker(val) {
