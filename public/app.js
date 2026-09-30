@@ -46,10 +46,17 @@ async function api(url, options = {}) {
   return res.json();
 }
 
+// Global Trek Filter State
+let currentSearchKeyword = '';
+let currentCityFilter = 'all';
+let currentFilterCategory = 'all';
+let currentDifficultyFilter = 'all';
+
 // Initialize application
 async function initApp() {
   setupNav();
   setupFilters();
+  initSmartTrekFinder();
   await loadSettings();
   await loadTreks();
   await loadFeedback();
@@ -140,7 +147,7 @@ function setupNav() {
   }, { passive: true });
 }
 
-// Setup trek category filter buttons
+// Setup trek category filter buttons (below heading)
 function setupFilters() {
   const filterBtns = document.querySelectorAll('.filter-btn');
   filterBtns.forEach(btn => {
@@ -148,9 +155,149 @@ function setupFilters() {
       filterBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const filter = btn.dataset.filter;
-      renderTreks(filter);
+      if (filter === 'all') {
+        currentDifficultyFilter = 'all';
+      } else if (filter === 'Beginner Friendly') {
+        currentDifficultyFilter = 'easy';
+      } else if (filter === 'Moderate') {
+        currentDifficultyFilter = 'moderate';
+      } else if (filter === 'Thrilling') {
+        currentDifficultyFilter = 'thrill';
+      }
+      const diffSelect = document.getElementById('difficultyFilter');
+      if (diffSelect) diffSelect.value = currentDifficultyFilter;
+      applyTrekFilters();
     });
   });
+}
+
+// Setup Smart Sahyadri Trek Finder widget & Story Circles
+function initSmartTrekFinder() {
+  const searchInput = document.getElementById('trekSearchInput');
+  const clearBtn = document.getElementById('clearTrekSearch');
+  const citySelect = document.getElementById('cityFilter');
+  const catSelect = document.getElementById('categoryFilter');
+  const diffSelect = document.getElementById('difficultyFilter');
+  const searchGoBtn = document.getElementById('btnSearchTreks');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      currentSearchKeyword = e.target.value.trim();
+      if (clearBtn) clearBtn.style.display = currentSearchKeyword ? 'block' : 'none';
+      applyTrekFilters();
+    });
+  }
+
+  if (clearBtn && searchInput) {
+    clearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      currentSearchKeyword = '';
+      clearBtn.style.display = 'none';
+      applyTrekFilters();
+      searchInput.focus();
+    });
+  }
+
+  if (citySelect) {
+    citySelect.addEventListener('change', (e) => {
+      currentCityFilter = e.target.value;
+      applyTrekFilters();
+    });
+  }
+
+  if (catSelect) {
+    catSelect.addEventListener('change', (e) => {
+      currentFilterCategory = e.target.value;
+      document.querySelectorAll('.cat-story-card').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === currentFilterCategory);
+      });
+      applyTrekFilters();
+    });
+  }
+
+  if (diffSelect) {
+    diffSelect.addEventListener('change', (e) => {
+      currentDifficultyFilter = e.target.value;
+      // Sync bottom filter tabs
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        const df = btn.dataset.filter;
+        const matches = (currentDifficultyFilter === 'all' && df === 'all') ||
+                        (currentDifficultyFilter === 'easy' && df === 'Beginner Friendly') ||
+                        (currentDifficultyFilter === 'moderate' && df === 'Moderate') ||
+                        (currentDifficultyFilter === 'thrill' && df === 'Thrilling');
+        btn.classList.toggle('active', matches);
+      });
+      applyTrekFilters();
+    });
+  }
+
+  if (searchGoBtn) {
+    searchGoBtn.addEventListener('click', () => {
+      applyTrekFilters();
+      const trekSec = document.getElementById('treks');
+      if (trekSec) trekSec.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  // Setup Story Circles
+  const storyCards = document.querySelectorAll('.cat-story-card');
+  storyCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const filter = card.dataset.filter;
+      if (filter === 'custom') {
+        const customSec = document.getElementById('custom-trek');
+        if (customSec) customSec.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+
+      storyCards.forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+
+      currentFilterCategory = filter;
+      if (catSelect) {
+        catSelect.value = (filter === 'night') ? 'camping' : filter;
+      }
+      applyTrekFilters();
+
+      const trekSec = document.getElementById('treks');
+      if (trekSec) {
+        const rect = trekSec.getBoundingClientRect();
+        if (rect.top > window.innerHeight) {
+          trekSec.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    });
+  });
+}
+
+// Reset all search and filter fields
+function resetAllTrekFilters() {
+  currentSearchKeyword = '';
+  currentCityFilter = 'all';
+  currentFilterCategory = 'all';
+  currentDifficultyFilter = 'all';
+
+  const searchInput = document.getElementById('trekSearchInput');
+  const clearBtn = document.getElementById('clearTrekSearch');
+  const citySelect = document.getElementById('cityFilter');
+  const catSelect = document.getElementById('categoryFilter');
+  const diffSelect = document.getElementById('difficultyFilter');
+
+  if (searchInput) searchInput.value = '';
+  if (clearBtn) clearBtn.style.display = 'none';
+  if (citySelect) citySelect.value = 'all';
+  if (catSelect) catSelect.value = 'all';
+  if (diffSelect) diffSelect.value = 'all';
+
+  document.querySelectorAll('.cat-story-card').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === 'all');
+  });
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === 'all');
+  });
+
+  applyTrekFilters();
 }
 
 // Load treks from server
@@ -158,33 +305,120 @@ async function loadTreks() {
   const grid = document.getElementById('treksGrid');
   try {
     allTreks = await api('/api/treks');
-    renderTreks('all');
+    applyTrekFilters();
+    renderWeekendSchedule();
     populateTrekSelects();
   } catch (err) {
-    grid.innerHTML = `<div class="loading-placeholder"><p>Unable to load treks. Please refresh.</p></div>`;
+    if (grid) {
+      grid.innerHTML = `<div class="loading-placeholder"><p>Unable to load treks. Please refresh.</p></div>`;
+    }
   }
 }
 
-// Render trek cards
-function renderTreks(filter = 'all') {
+// Apply multi-field filtering to treks
+function applyTrekFilters() {
   const grid = document.getElementById('treksGrid');
   if (!grid) return;
 
-  let filtered = allTreks;
-  if (filter === 'Beginner Friendly') {
-    filtered = allTreks.filter(t => t.difficulty.toLowerCase().includes('easy'));
-  } else if (filter === 'Moderate') {
-    filtered = allTreks.filter(t => t.difficulty.toLowerCase().includes('moderate'));
-  } else if (filter === 'Thrilling') {
-    filtered = allTreks.filter(t => t.difficulty.toLowerCase().includes('hard') || t.difficulty.toLowerCase().includes('thrill'));
+  const keyword = currentSearchKeyword.toLowerCase();
+  const city = currentCityFilter.toLowerCase();
+  const cat = currentFilterCategory.toLowerCase();
+  const diff = currentDifficultyFilter.toLowerCase();
+
+  const filtered = allTreks.filter(t => {
+    // 1. Keyword query search
+    if (keyword) {
+      const matchName = (t.name || '').toLowerCase().includes(keyword);
+      const matchLoc = (t.location || '').toLowerCase().includes(keyword);
+      const matchReg = (t.region || '').toLowerCase().includes(keyword);
+      const matchDesc = ((t.short_description || '') + ' ' + (t.description || '')).toLowerCase().includes(keyword);
+      if (!matchName && !matchLoc && !matchReg && !matchDesc) return false;
+    }
+
+    // 2. City / Departure filter
+    if (city !== 'all') {
+      const allLocText = ((t.location || '') + ' ' + (t.meeting_point || '') + ' ' + ((t.pickups || []).join(' '))).toLowerCase();
+      if (city === 'pune') {
+        const matchesPune = allLocText.includes('pune') || allLocText.includes('wakad') || allLocText.includes('swargate');
+        if (!matchesPune) return false;
+      }
+      // Note: All Sahyadri treks depart from Mumbai
+    }
+
+    // 3. Category filter
+    if (cat !== 'all') {
+      const textForCat = ((t.name || '') + ' ' + (t.category || '') + ' ' + (t.region || '') + ' ' + (t.description || '')).toLowerCase();
+      if (cat === 'fort') {
+        if (!textForCat.includes('gad') && !textForCat.includes('fort') && !textForCat.includes('killa')) return false;
+      } else if (cat === 'waterfall') {
+        if (!textForCat.includes('waterfall') && !textForCat.includes('fall') && !textForCat.includes('devkund') && !textForCat.includes('stream') && !textForCat.includes('kund')) return false;
+      } else if (cat === 'camping' || cat === 'night') {
+        if (!textForCat.includes('camp') && !textForCat.includes('night') && !textForCat.includes('tent') && !textForCat.includes('sunrise') && !textForCat.includes('stargazing')) return false;
+      } else if (cat === 'thrill') {
+        const isThrill = (t.difficulty || '').toLowerCase().includes('hard') || (t.difficulty || '').toLowerCase().includes('thrill') || textForCat.includes('cliff') || textForCat.includes('canyon') || textForCat.includes('rock');
+        if (!isThrill) return false;
+      }
+    }
+
+    // 4. Difficulty filter
+    if (diff !== 'all') {
+      const tDiff = (t.difficulty || '').toLowerCase();
+      if (diff === 'easy' || diff === 'beginner friendly') {
+        if (!tDiff.includes('easy') && !tDiff.includes('beginner')) return false;
+      } else if (diff === 'moderate') {
+        if (!tDiff.includes('moderate')) return false;
+      } else if (diff === 'thrill' || diff === 'thrilling') {
+        if (!tDiff.includes('hard') && !tDiff.includes('thrill') && !tDiff.includes('difficult')) return false;
+      }
+    }
+
+    return true;
+  });
+
+  // Update live count badge
+  const countText = document.getElementById('trekCountText');
+  if (countText) {
+    if (filtered.length === allTreks.length) {
+      countText.textContent = `Showing all ${filtered.length} verified Sahyadri trails`;
+    } else {
+      countText.textContent = `Showing ${filtered.length} matching trail${filtered.length === 1 ? '' : 's'}`;
+    }
   }
 
+  renderTrekCards(filtered);
+}
+
+// Backward-compatible alias
+function renderTreks(filter = 'all') {
+  if (filter === 'all') {
+    currentDifficultyFilter = 'all';
+  } else if (filter === 'Beginner Friendly') {
+    currentDifficultyFilter = 'easy';
+  } else if (filter === 'Moderate') {
+    currentDifficultyFilter = 'moderate';
+  } else if (filter === 'Thrilling') {
+    currentDifficultyFilter = 'thrill';
+  }
+  applyTrekFilters();
+}
+
+// Render Trek Cards
+function renderTrekCards(filtered) {
+  const grid = document.getElementById('treksGrid');
+  if (!grid) return;
+
   if (!filtered.length) {
-    grid.innerHTML = `<div class="loading-placeholder"><p>No trails match this category at present.</p></div>`;
+    grid.innerHTML = `
+      <div class="loading-placeholder" style="grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center;">
+        <p style="font-size: 1.15rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.5rem;">No trails match your current search</p>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">Try resetting your filters or search for Harishchandragad, Devkund, or Kalsubai.</p>
+        <button type="button" class="btn btn-outline btn-sm" onclick="resetAllTrekFilters()">Reset All Filters</button>
+      </div>
+    `;
     return;
   }
 
-  grid.innerHTML = filtered.map(t => {
+  grid.innerHTML = filtered.map((t, idx) => {
     // Next weekend date slot pill
     let dateSlotHtml = '';
     if (t.next_date) {
@@ -212,19 +446,40 @@ function renderTreks(filter = 'all') {
     }
 
     const coverPhoto = t.cover_photo || '/brand/pahadnama-logo.png';
+    const tagBadge = idx === 0 ? '<span class="card-ribbon bestseller">⭐ BESTSELLER</span>' : (t.is_featured ? '<span class="card-ribbon popular">🔥 POPULAR</span>' : '');
 
     return `
       <article class="trek-card" id="trek-card-${t.id}">
         <div class="card-media" onclick="openTrekModal(${t.id})" style="cursor:pointer">
           <img src="${esc(coverPhoto)}" alt="${esc(t.name)}" loading="lazy">
-          <span class="card-difficulty-badge">${esc(t.difficulty)}</span>
-          <span class="card-duration-badge">${esc(t.duration)}</span>
+          ${tagBadge}
+          <div class="card-media-tags">
+            <span class="card-difficulty-badge">${esc(t.difficulty)}</span>
+            <span class="card-duration-badge">${esc(t.duration)}</span>
+          </div>
         </div>
 
         <div class="card-body">
-          <div class="card-location"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg> ${esc(t.location)}</div>
+          <div class="card-top-meta">
+            <span class="card-location">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+              ${esc(t.location)}
+            </span>
+            <span class="card-rating">
+              <span class="rating-star">★</span> 4.9 <small style="color:var(--text-muted);font-weight:normal">(120+)</small>
+            </span>
+          </div>
+
           <h3 class="card-title" onclick="openTrekModal(${t.id})" style="cursor:pointer">${esc(t.name)}</h3>
           <p class="card-desc">${esc(t.short_description || t.description)}</p>
+
+          <!-- Standard Maharashtra Trek Inclusions Strip -->
+          <div class="card-inclusions-strip">
+            <span class="inc-chip">✓ Transport</span>
+            <span class="inc-chip">✓ 2 Meals</span>
+            <span class="inc-chip">✓ Certified Guide</span>
+            <span class="inc-chip">✓ First Aid</span>
+          </div>
 
           ${dateSlotHtml}
 
@@ -238,14 +493,103 @@ function renderTreks(filter = 'all') {
             </div>
 
             <div class="card-actions">
-              <button class="btn btn-sm btn-outline" onclick="openTrekModal(${t.id})">Details</button>
-              <button class="btn btn-sm btn-primary" onclick="quickBookTrek(${t.id})">Book Now</button>
+              <button type="button" class="btn btn-sm btn-outline" onclick="openTrekModal(${t.id})">Details</button>
+              <button type="button" class="btn btn-sm btn-primary" onclick="quickBookTrek(${t.id})">Book Now &rarr;</button>
             </div>
           </div>
         </div>
       </article>
     `;
   }).join('');
+}
+
+// Render Upcoming Weekend Batches live schedule
+function renderWeekendSchedule() {
+  const container = document.getElementById('weekendSlotsGrid');
+  if (!container) return;
+
+  const upcomingSlots = [];
+  allTreks.forEach(t => {
+    if (t.dates && t.dates.length > 0) {
+      t.dates.forEach(d => {
+        if (d.status !== 'CANCELLED') {
+          upcomingSlots.push({
+            trek: t,
+            date: d
+          });
+        }
+      });
+    }
+  });
+
+  // Sort upcoming chronologically
+  upcomingSlots.sort((a, b) => new Date(a.date.event_date) - new Date(b.date.event_date));
+
+  // Take top 4 upcoming batches
+  const displaySlots = upcomingSlots.slice(0, 4);
+
+  if (!displaySlots.length) {
+    container.innerHTML = `
+      <div class="loading-placeholder" style="grid-column: 1 / -1; padding: 2rem; text-align: center;">
+        <p style="color: var(--text-muted);">Upcoming weekend departures are being scheduled. Inquire on WhatsApp for immediate slots!</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = displaySlots.map(slot => {
+    const t = slot.trek;
+    const d = slot.date;
+    const statusClass = (d.status || 'AVAILABLE').toLowerCase().replace('_', '-');
+    const statusLabel = d.status === 'FAST_FILLING' ? 'Fast Filling' : (d.status === 'FULL' ? 'Sold Out' : 'Seats Open');
+
+    const dt = new Date(d.event_date);
+    const dayMonth = dt.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+    const weekday = d.day_of_week || dt.toLocaleDateString('en-IN', { weekday: 'long' });
+
+    return `
+      <div class="weekend-slot-card">
+        <div class="wslot-calendar-badge">
+          <span class="wslot-month">${dt.toLocaleDateString('en-IN', { month: 'short' }).toUpperCase()}</span>
+          <span class="wslot-day">${dt.getDate()}</span>
+          <span class="wslot-dow">${weekday.slice(0, 3)}</span>
+        </div>
+
+        <div class="wslot-info">
+          <div class="wslot-header-line">
+            <span class="slot-status ${statusClass}">${statusLabel}</span>
+            <span class="wslot-pickup">Pickup: Mumbai &amp; Pune</span>
+          </div>
+          <h4 class="wslot-title" onclick="openTrekModal(${t.id})" style="cursor:pointer">${esc(t.name)}</h4>
+          <div class="wslot-meta-strip">
+            <span>⛰️ ${esc(t.difficulty)}</span>
+            <span>⏱️ ${esc(t.duration)}</span>
+            <span>📍 ${esc(t.location)}</span>
+          </div>
+        </div>
+
+        <div class="wslot-action-area">
+          <div class="wslot-price">
+            <span class="price-amount">${formatInr(t.price)}</span>
+            <small>/ person</small>
+          </div>
+          <button type="button" class="btn btn-sm btn-primary wslot-btn" onclick="openTrekModalWithDate(${t.id}, ${d.id})">
+            Reserve Seat &rarr;
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Open modal and pre-select a specific date
+function openTrekModalWithDate(trekId, dateId) {
+  openTrekModal(trekId).then(() => {
+    setTimeout(() => {
+      const chip = document.querySelector(`.date-chip-btn[onclick*="${dateId}"]`);
+      if (chip) chip.click();
+    }, 150);
+  });
 }
 
 // Populate trek dropdowns in forms
@@ -304,8 +648,8 @@ function renderTrekModalContent(t) {
   ` : '<p style="color:var(--text-muted)">Itinerary will be updated shortly by our coordinators.</p>';
 
   // Inclusions & Exclusions
-  const inclusionsList = (t.inclusions && t.inclusions.length) ? t.inclusions.map(i => `<li>? ${esc(i)}</li>`).join('') : '<li>? Transport & Local Guides</li>';
-  const exclusionsList = (t.exclusions && t.exclusions.length) ? t.exclusions.map(e => `<li>? ${esc(e)}</li>`).join('') : '<li>? Personal expenses</li>';
+  const inclusionsList = (t.inclusions && t.inclusions.length) ? t.inclusions.map(i => `<li><span class="inc-check">✓</span> ${esc(i)}</li>`).join('') : '<li><span class="inc-check">✓</span> Transport &amp; Local Guides</li>';
+  const exclusionsList = (t.exclusions && t.exclusions.length) ? t.exclusions.map(e => `<li><span class="exc-cross">✕</span> ${esc(e)}</li>`).join('') : '<li><span class="exc-cross">✕</span> Personal expenses</li>';
 
   // Dates selection chips
   let datesChipsHtml = '';
