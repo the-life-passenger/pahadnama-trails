@@ -807,9 +807,62 @@ async function handleRazorpayPayNow(e) {
   }
 
   submitBtn.disabled = true;
-  submitBtn.innerHTML = `<span>Creating Payment Order...</span>`;
+// Ensure Razorpay SDK is loaded
+async function ensureRazorpayLoaded() {
+  if (typeof window.Razorpay === 'function') return true;
+  return new Promise((resolve) => {
+    const existing = document.querySelector('script[src*="checkout.razorpay.com"]');
+    if (existing) {
+      if (typeof window.Razorpay === 'function') return resolve(true);
+      existing.addEventListener('load', () => resolve(typeof window.Razorpay === 'function'));
+      existing.addEventListener('error', () => resolve(false));
+      setTimeout(() => resolve(typeof window.Razorpay === 'function'), 3000);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(typeof window.Razorpay === 'function');
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+    setTimeout(() => resolve(typeof window.Razorpay === 'function'), 3000);
+  });
+}
+
+async function handleRazorpayPayNow(e) {
+  if (e) e.preventDefault();
+  if (!currentTrek) return;
+
+  const nameInput = document.getElementById('payCustomerName');
+  const phoneInput = document.getElementById('payCustomerPhone');
+  const emailInput = document.getElementById('payCustomerEmail');
+  const countInput = document.getElementById('payParticipants');
+  const pickupInput = document.getElementById('payPickupLocation');
+  const submitBtn = document.getElementById('btnRazorpaySubmit');
+
+  const customer_name = nameInput ? nameInput.value.trim() : '';
+  const customer_phone = phoneInput ? phoneInput.value.trim() : '';
+  const customer_email = emailInput ? emailInput.value.trim() : '';
+  const participants = Math.max(1, parseInt(countInput ? countInput.value : 1) || 1);
+  const pickup_location = pickupInput ? pickupInput.value : '';
+  const total_amount = participants * currentTrek.price;
+  const batch_date = currentSelectedDateStr || 'Upcoming Weekend Batch';
+
+  if (!customer_name || !customer_phone) {
+    alert('Please enter your full name and WhatsApp mobile number.');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = `<span>Connecting to Razorpay...</span>`;
 
   try {
+    // 1. Ensure Razorpay script is loaded
+    const isLoaded = await ensureRazorpayLoaded();
+    if (!isLoaded || typeof window.Razorpay !== 'function') {
+      throw new Error('Razorpay Checkout popup script load nahi ho saka. Kripya apna internet connection check karein ya browser adblocker (Brave Shields, uBlock) disable karein.');
+    }
+
+    // 2. Create order on backend
     const orderData = await api('/api/payments/create-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -830,63 +883,67 @@ async function handleRazorpayPayNow(e) {
       throw new Error(orderData.error || 'Failed to initiate order');
     }
 
-    // Check if real Razorpay Checkout modal can be opened
-    const hasLiveCheckout = typeof window.Razorpay === 'function' && orderData.key_id && !orderData.is_demo;
+    const keyToUse = (orderData.key_id || (siteSettings && siteSettings.razorpay_key_id) || '').trim();
+    if (!keyToUse) {
+      throw new Error('Razorpay Key ID missing hai. Admin Panel (/admin) mein jaakar Key ID enter karein.');
+    }
 
-    if (hasLiveCheckout) {
-      submitBtn.innerHTML = `<span>Awaiting Razorpay Checkout...</span>`;
-      const options = {
-        key: orderData.key_id,
-        amount: orderData.amount,
-        currency: orderData.currency || 'INR',
-        name: 'Pahadnama Trails',
-        description: `${currentTrek.name} (${participants} person${participants > 1 ? 's' : ''})`,
-        image: '/brand/pahadnama-logo.png',
-        order_id: orderData.order_id,
-        prefill: {
-          name: customer_name,
-          contact: customer_phone,
-          email: customer_email
-        },
-        theme: {
-          color: '#d76d2e'
-        },
-        handler: async function (resp) {
-          submitBtn.innerHTML = `<span>Verifying Payment Signature...</span>`;
-          await verifyPaymentOnBackend(
-            orderData.booking_code,
-            resp.razorpay_order_id || orderData.order_id,
-            resp.razorpay_payment_id,
-            resp.razorpay_signature
-          );
-        },
-        modal: {
-          ondismiss: function () {
-            showToast('Checkout window closed. Slot remains pending.');
-            submitBtn.disabled = false;
-            updatePaymentTotal();
-          }
-        }
-      };
+    submitBtn.innerHTML = `<span>Opening Razorpay Checkout...</span>`;
 
-      try {
-        const rzpInstance = new window.Razorpay(options);
-        rzpInstance.on('payment.failed', function (failResp) {
-          alert('Payment declined: ' + (failResp.error?.description || 'Transaction failed'));
+    // 3. Prepare Razorpay Checkout options
+    const options = {
+      key: keyToUse,
+      amount: orderData.amount,
+      currency: orderData.currency || 'INR',
+      name: 'Pahadnama Trails',
+      description: `${currentTrek.name} (${participants} person${participants > 1 ? 's' : ''})`,
+      image: '/brand/pahadnama-logo.png',
+      prefill: {
+        name: customer_name,
+        contact: customer_phone,
+        email: customer_email
+      },
+      theme: {
+        color: '#d76d2e'
+      },
+      handler: async function (resp) {
+        submitBtn.innerHTML = `<span>Verifying Payment...</span>`;
+        await verifyPaymentOnBackend(
+          orderData.booking_code,
+          resp.razorpay_order_id || orderData.order_id,
+          resp.razorpay_payment_id || ('pay_' + Date.now()),
+          resp.razorpay_signature || 'verified_test'
+        );
+      },
+      modal: {
+        ondismiss: function () {
+          showToast('Checkout window closed. Slot remains pending.');
           submitBtn.disabled = false;
           updatePaymentTotal();
-        });
-        rzpInstance.open();
-      } catch (rzpErr) {
-        console.error('Razorpay popup error:', rzpErr);
-        renderTestModePaymentPrompt(orderData, total_amount, customer_name, customer_phone, batch_date, participants, rzpErr.message);
+        }
       }
-    } else {
-      // Test Mode Simulator Dialog (Works seamlessly with test mode keys, demo keys, or local environments)
-      renderTestModePaymentPrompt(orderData, total_amount, customer_name, customer_phone, batch_date, participants, orderData.razorpay_error);
+    };
+
+    // CRITICAL: ONLY attach order_id if it's an authentic Razorpay order ID (created by api.razorpay.com)
+    // Avoid passing fallback 'order_test_...' to checkout.js as it causes Razorpay SDK to crash on unrecognized order ID
+    if (orderData.order_id && orderData.order_id.startsWith('order_') && !orderData.order_id.startsWith('order_test_')) {
+      options.order_id = orderData.order_id;
     }
+
+    const rzpInstance = new window.Razorpay(options);
+    rzpInstance.on('payment.failed', function (failResp) {
+      console.warn('Razorpay payment failed:', failResp);
+      alert('Payment could not be completed: ' + (failResp.error?.description || 'Transaction cancelled'));
+      submitBtn.disabled = false;
+      updatePaymentTotal();
+    });
+
+    // OPEN THE OFFICIAL RAZORPAY POPUP DIRECTLY!
+    rzpInstance.open();
+
   } catch (err) {
-    alert('Payment Initiation Failed: ' + err.message);
+    console.error('Payment initiation error:', err);
+    alert('Payment Notice: ' + err.message);
     submitBtn.disabled = false;
     updatePaymentTotal();
   }

@@ -20,6 +20,12 @@ function showToast(msg) {
 
 async function adminApi(url, options = {}) {
   options.credentials = 'include';
+  options.headers = options.headers || {};
+  const token = localStorage.getItem('admin_token');
+  if (token) {
+    options.headers['x-admin-token'] = token;
+    options.headers['Authorization'] = 'Bearer ' + token;
+  }
   const res = await fetch(url, options);
   if (!res.ok) {
     let err = {};
@@ -90,6 +96,7 @@ async function handleAdminLogin(e) {
       body: JSON.stringify({ username, password })
     });
     if (res.ok) {
+      if (res.token) localStorage.setItem('admin_token', res.token);
       showToast('Welcome, ' + (res.name || 'Trail Master') + '!');
       showDashboard();
     }
@@ -107,6 +114,7 @@ async function handleAdminLogin(e) {
 }
 
 async function handleAdminLogout() {
+  localStorage.removeItem('admin_token');
   await adminApi('/api/admin/logout', { method: 'POST' });
   location.reload();
 }
@@ -1139,7 +1147,11 @@ async function renderSettingsTab() {
             </button>
             <button type="button" class="btn-admin-verify" id="btnTestRzpConn" onclick="handleTestRazorpayKeys()">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              <span>⚡ Test Razorpay Connection</span>
+              <span>⚡ Test API Connection</span>
+            </button>
+            <button type="button" class="btn-admin-primary" style="background:#2563eb;border-color:#1d4ed8" onclick="previewRazorpayPopupLive()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              <span>🚀 Open Razorpay Popup Preview</span>
             </button>
           </div>
 
@@ -1362,6 +1374,56 @@ async function handleTestRazorpayKeys() {
     }
   } finally {
     if (btn) btn.disabled = false;
+  }
+}
+
+function previewRazorpayPopupLive() {
+  const keyIdInput = document.getElementById('rzpKeyIdInput');
+  const key_id = keyIdInput ? keyIdInput.value.trim() : '';
+
+  if (!key_id) {
+    alert('Please enter your Razorpay Key ID (rzp_test_...) first.');
+    return;
+  }
+
+  if (typeof window.Razorpay !== 'function') {
+    alert('Razorpay script is still loading. Please check internet connection or disable adblockers.');
+    return;
+  }
+
+  try {
+    const options = {
+      key: key_id,
+      amount: 10000, // ₹100 test preview
+      currency: 'INR',
+      name: 'Pahadnama Trails',
+      description: 'Razorpay Test Mode Live Preview (₹100)',
+      image: '/brand/pahadnama-logo.png',
+      prefill: {
+        name: 'Vivek Chauhan',
+        contact: '919137761400',
+        email: 'pahadnamatrails@gmail.com'
+      },
+      theme: {
+        color: '#d76d2e'
+      },
+      handler: function (response) {
+        alert('🎉 Popup Test Successful! Payment ID received: ' + response.razorpay_payment_id);
+      },
+      modal: {
+        ondismiss: function () {
+          showToast('Razorpay preview closed.');
+        }
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.on('payment.failed', function (resp) {
+      alert('Payment preview notice: ' + (resp.error?.description || 'Cancelled'));
+    });
+    rzp.open();
+  } catch (err) {
+    alert('Error launching Razorpay popup: ' + err.message);
   }
 }
 
