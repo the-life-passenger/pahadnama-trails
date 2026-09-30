@@ -993,6 +993,85 @@ async function renderSettingsTab() {
   try {
     const s = await adminApi('/api/admin/settings');
     content.innerHTML = `
+      <!-- THEME & BACKGROUND APPEARANCE SETTINGS -->
+      <div class="admin-panel" style="max-width:800px;margin-bottom:2rem">
+        <div class="admin-panel-head">
+          <div>
+            <h3>🎨 Website Theme &amp; Background Appearance</h3>
+            <small style="color:var(--admin-text-muted)">Customize your website's background color, upload a background photo, and control its visibility.</small>
+          </div>
+        </div>
+
+        <form onsubmit="handleSaveBgSettings(event)">
+          <div class="admin-form-group">
+            <label>1. Background Color</label>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
+              <input type="color" id="siteBgColorPicker" value="${esc(s.site_bg_color || '#ffffff')}" style="width:48px;height:44px;padding:2px;border-radius:8px;cursor:pointer;border:1.5px solid var(--admin-border);background:transparent" oninput="syncBgColorPicker(this.value)">
+              <input type="text" id="siteBgColorText" name="site_bg_color" value="${esc(s.site_bg_color || '#ffffff')}" placeholder="#ffffff" style="max-width:140px;font-family:monospace;font-weight:700" oninput="syncBgColorText(this.value)">
+              <div style="display:flex;gap:0.4rem;align-items:center">
+                <span style="font-size:0.8rem;color:var(--admin-text-muted)">Presets:</span>
+                <button type="button" onclick="setPresetColor('#ffffff')" title="Pure White" style="background:#ffffff;border:1.5px solid #cbd5e1;width:28px;height:28px;border-radius:6px;cursor:pointer"></button>
+                <button type="button" onclick="setPresetColor('#f8fafc')" title="Soft Pearl" style="background:#f8fafc;border:1.5px solid #cbd5e1;width:28px;height:28px;border-radius:6px;cursor:pointer"></button>
+                <button type="button" onclick="setPresetColor('#fffbeb')" title="Warm Cream" style="background:#fffbeb;border:1.5px solid #cbd5e1;width:28px;height:28px;border-radius:6px;cursor:pointer"></button>
+                <button type="button" onclick="setPresetColor('#f1f5f9')" title="Cool Mist" style="background:#f1f5f9;border:1.5px solid #cbd5e1;width:28px;height:28px;border-radius:6px;cursor:pointer"></button>
+                <button type="button" onclick="setPresetColor('#0f172a')" title="Dark Mode" style="background:#0f172a;border:1.5px solid #cbd5e1;width:28px;height:28px;border-radius:6px;cursor:pointer"></button>
+              </div>
+            </div>
+            <small>Default is pure clean white (<code>#ffffff</code>). You can pick any custom color.</small>
+          </div>
+
+          <div class="admin-form-group">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <label>2. Background Image Visibility / Opacity: <strong id="bgOpacityVal" style="color:var(--admin-accent)">${esc(s.site_bg_opacity || '15')}%</strong></label>
+            </div>
+            <input type="range" name="site_bg_opacity" id="siteBgOpacityRange" min="0" max="100" value="${esc(s.site_bg_opacity || '15')}" style="width:100%;cursor:pointer" oninput="document.getElementById('bgOpacityVal').textContent = this.value + '%'">
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--admin-text-muted);margin-top:0.25rem">
+              <span>0% (Hidden / Solid Color)</span>
+              <span>15% - 25% (Recommended for subtle texture)</span>
+              <span>50%</span>
+              <span>100% (Full photo)</span>
+            </div>
+            <small>Decide how visible the background photo is across your public website.</small>
+          </div>
+
+          <div class="admin-form-group">
+            <label>3. Background Image URL (Optional)</label>
+            <input type="text" name="site_bg_image" id="siteBgImageUrl" value="${esc(s.site_bg_image || '')}" placeholder="https://images.unsplash.com/... or /uploads/...">
+            <small>Enter a direct image URL, or upload a photo file below.</small>
+          </div>
+
+          <button type="submit" class="btn-admin-primary" style="margin-top:0.5rem">Save Color &amp; Visibility Settings</button>
+        </form>
+
+        <hr style="margin:2rem 0;border:none;border-top:1px solid var(--admin-border)">
+
+        <h4 style="font-family:var(--font-heading);font-size:1.05rem;margin-bottom:0.4rem">Upload Background Photo File</h4>
+        <p style="font-size:0.85rem;color:var(--admin-text-muted);margin-bottom:1rem">Upload a wallpaper/photo from your computer (e.g. Sahyadri mountain ridge, mist, or nature texture).</p>
+        <form onsubmit="handleUploadBgImage(event)" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+          <input type="file" name="bg_image" accept="image/*" required>
+          <button type="submit" class="btn-admin-primary">Upload &amp; Apply Photo</button>
+        </form>
+
+        ${s.site_bg_image ? `
+          <div style="margin-top:1.2rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;background:var(--admin-bg-subtle);padding:1rem 1.25rem;border-radius:8px;border:1px solid var(--admin-border)">
+            <img src="${esc(s.site_bg_image)}" alt="Current Background Preview" style="width:140px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--admin-border)">
+            <div>
+              <small style="display:block;color:var(--admin-text-muted)">Current Active Background Photo</small>
+              <code style="font-size:0.82rem;color:var(--admin-accent)">${esc(s.site_bg_image)}</code>
+              <div style="margin-top:0.6rem">
+                <button type="button" class="btn-admin-danger" onclick="handleRemoveBgImage()" style="padding:0.45rem 0.9rem;font-size:0.82rem;border:none;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:0.35rem">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  <span>Remove Background Photo</span>
+                </button>
+              </div>
+            </div>
+          </div>` : `
+          <div style="margin-top:1rem;padding:0.75rem 1rem;background:var(--admin-bg-subtle);border:1px dashed var(--admin-border);border-radius:8px;font-size:0.85rem;color:var(--admin-text-muted)">
+            ℹ️ No background photo currently uploaded. Website is using clean solid background color.
+          </div>
+        `}
+      </div>
+
       <div class="admin-panel" style="max-width:800px">
         <div class="admin-panel-head">
           <div>
@@ -1125,6 +1204,72 @@ async function handleSaveSettings(e) {
     showToast('Settings saved!');
     renderSettingsTab();
   } catch (err) { alert('Failed: ' + err.message); }
+}
+
+function syncBgColorPicker(val) {
+  const textInput = document.getElementById('siteBgColorText');
+  if (textInput) textInput.value = val;
+}
+
+function syncBgColorText(val) {
+  const picker = document.getElementById('siteBgColorPicker');
+  if (picker && /^#[0-9A-Fa-f]{6}$/.test(val)) {
+    picker.value = val;
+  }
+}
+
+function setPresetColor(hex) {
+  const picker = document.getElementById('siteBgColorPicker');
+  const text = document.getElementById('siteBgColorText');
+  if (picker) picker.value = hex;
+  if (text) text.value = hex;
+}
+
+async function handleSaveBgSettings(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const body = Object.fromEntries(formData.entries());
+  try {
+    await adminApi('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    showToast('Theme & background appearance saved successfully!');
+    renderSettingsTab();
+  } catch (err) { alert('Failed to save theme settings: ' + err.message); }
+}
+
+async function handleUploadBgImage(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  try {
+    const res = await fetch('/api/admin/settings/background', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    showToast('Background photo uploaded and applied!');
+    renderSettingsTab();
+  } catch (err) { alert('Background photo upload failed: ' + err.message); }
+}
+
+async function handleRemoveBgImage() {
+  if (!confirm('Are you sure you want to remove the background photo?')) return;
+  try {
+    const res = await fetch('/api/admin/settings/background', {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to remove');
+    showToast('Background photo removed. Reverted to clean background color.');
+    renderSettingsTab();
+  } catch (err) { alert('Failed to remove background photo: ' + err.message); }
 }
 
 async function handleUploadLogo(e) {

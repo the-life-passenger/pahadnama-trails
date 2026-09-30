@@ -963,6 +963,29 @@ app.post('/api/admin/settings/logo', requireAdmin, upload.single('logo_image'), 
   }
 });
 
+// Settings management: Upload Background Image
+app.post('/api/admin/settings/background', requireAdmin, upload.single('bg_image'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No background image uploaded' });
+    const bgUrl = `/uploads/${req.file.filename}`;
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('site_bg_image', bgUrl);
+    res.json({ ok: true, site_bg_image: bgUrl, message: 'Background image uploaded and applied successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to upload background image: ' + err.message });
+  }
+});
+
+// Settings management: Remove Background Image
+app.delete('/api/admin/settings/background', requireAdmin, (req, res) => {
+  try {
+    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('site_bg_image', '')").run();
+    res.json({ ok: true, message: 'Background image removed successfully', site_bg_image: '' });
+  } catch (err) {
+    console.error('Error removing background image:', err);
+    res.status(500).json({ error: 'Failed to remove background image: ' + err.message });
+  }
+});
+
 // Security: Change admin password
 app.post('/api/admin/change-password', requireAdmin, (req, res) => {
   try {

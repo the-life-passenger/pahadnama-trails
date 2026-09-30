@@ -152,7 +152,10 @@ const defaultSettings = {
   razorpay_enabled: 'true',
   razorpay_key_id: 'rzp_test_5172839485',
   razorpay_key_secret: 'rzp_test_secret_demo',
-  razorpay_currency: 'INR'
+  razorpay_currency: 'INR',
+  site_bg_color: '#ffffff',
+  site_bg_image: '',
+  site_bg_opacity: '15'
 };
 
 const setStmt = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
