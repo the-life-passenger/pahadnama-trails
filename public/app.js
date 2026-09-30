@@ -782,31 +782,6 @@ function updatePaymentTotal() {
   if (btnText) btnText.textContent = `Proceed to Pay ${formatInr(total)} \u2192`;
 }
 
-async function handleRazorpayPayNow(e) {
-  if (e) e.preventDefault();
-  if (!currentTrek) return;
-
-  const nameInput = document.getElementById('payCustomerName');
-  const phoneInput = document.getElementById('payCustomerPhone');
-  const emailInput = document.getElementById('payCustomerEmail');
-  const countInput = document.getElementById('payParticipants');
-  const pickupInput = document.getElementById('payPickupLocation');
-  const submitBtn = document.getElementById('btnRazorpaySubmit');
-
-  const customer_name = nameInput ? nameInput.value.trim() : '';
-  const customer_phone = phoneInput ? phoneInput.value.trim() : '';
-  const customer_email = emailInput ? emailInput.value.trim() : '';
-  const participants = Math.max(1, parseInt(countInput ? countInput.value : 1) || 1);
-  const pickup_location = pickupInput ? pickupInput.value : '';
-  const total_amount = participants * currentTrek.price;
-  const batch_date = currentSelectedDateStr || 'Upcoming Weekend Batch';
-
-  if (!customer_name || !customer_phone) {
-    alert('Please enter your full name and WhatsApp mobile number.');
-    return;
-  }
-
-  submitBtn.disabled = true;
 // Ensure Razorpay SDK is loaded
 async function ensureRazorpayLoaded() {
   if (typeof window.Razorpay === 'function') return true;
