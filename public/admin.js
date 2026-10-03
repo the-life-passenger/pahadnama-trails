@@ -282,7 +282,7 @@ async function renderTreksTab() {
               ${activeTrekList.map(t => `
                 <tr>
                   <td><img src="${esc(t.cover_photo || '/brand/pahadnama-logo.png')}" alt="" class="table-thumb"></td>
-                  <td><strong>${esc(t.name)}</strong><br><small style="color:var(--admin-text-muted)">${esc(t.duration)} &bull; ${t.dates ? t.dates.length : 0} dates</small></td>
+                  <td><strong>${esc(t.name)}</strong>${t.document_url ? ' <span title="Trek Voucher PDF Attached" style="cursor:help">📄</span>' : ''}<br><small style="color:var(--admin-text-muted)">${esc(t.duration)} &bull; ${t.dates ? t.dates.length : 0} dates</small></td>
                   <td>${esc(t.location)}</td>
                   <td><strong>&#8377;${Number(t.price).toLocaleString('en-IN')}</strong></td>
                   <td>${esc(t.difficulty)}</td>
@@ -408,6 +408,46 @@ function openTrekFormModal(t) {
             <option value="closed" ${t && t.status === 'closed' ? 'selected' : ''}>Closed</option>
           </select>
         </div>
+
+        <div class="admin-form-group full-width" style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1.5px dashed var(--admin-border);margin-top:0.75rem">
+          <div style="margin-bottom:0.75rem">
+            <label style="font-weight:700;font-size:0.95rem;color:var(--admin-text);margin-bottom:0.15rem;display:flex;align-items:center;gap:0.4rem">
+              <span>📄</span> Trek Voucher / PDF Brochure / Itinerary Document
+            </label>
+            <small style="color:var(--admin-text-muted)">Upload a PDF brochure, route guide, or voucher for trekkers to download from the trek details modal.</small>
+          </div>
+
+          <div id="trekDocPreviewSection" style="margin-bottom:1rem">
+            ${t && t.document_url ? `
+              <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;padding:0.75rem 1rem;border-radius:6px;border:1px solid #bbf7d0;flex-wrap:wrap;gap:0.5rem">
+                <div style="display:flex;align-items:center;gap:0.6rem">
+                  <span style="font-size:1.4rem">📄</span>
+                  <div>
+                    <a href="${esc(t.document_url)}" target="_blank" style="font-weight:600;color:var(--admin-primary);text-decoration:underline">${esc(t.document_name || 'View Uploaded Document')}</a>
+                    <div style="font-size:0.75rem;color:var(--admin-text-muted)">${esc(t.document_url)}</div>
+                  </div>
+                </div>
+                <button type="button" class="btn-admin-danger btn-admin-sm" onclick="handleRemoveTrekDocument(${t.id})">🗑️ Remove Document</button>
+              </div>
+            ` : `
+              <div style="font-size:0.85rem;color:var(--admin-text-muted);font-style:italic">No voucher/PDF currently attached. Upload a file below or enter a link.</div>
+            `}
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:1rem;align-items:end">
+            <div>
+              <label style="font-size:0.8rem;color:var(--admin-text-muted);margin-bottom:0.3rem">Upload File (.pdf, .doc, .docx, images)</label>
+              <input type="file" id="trekDocFileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="font-size:0.85rem">
+              ${t ? `<button type="button" class="btn-admin-primary btn-admin-sm" style="margin-top:0.5rem" onclick="handleUploadTrekDocument(${t.id})">⬆️ Upload File Now</button>` : `<small style="display:block;color:var(--admin-text-muted);margin-top:0.3rem">File will automatically be uploaded when you click "Save Trek".</small>`}
+            </div>
+            <div>
+              <label style="font-size:0.8rem;color:var(--admin-text-muted);margin-bottom:0.3rem">Document Name / Label</label>
+              <input type="text" name="document_name" id="trekDocNameInput" value="${esc(t ? (t.document_name || '') : '')}" placeholder="e.g. Harishchandragad Brochure.pdf">
+              <label style="font-size:0.8rem;color:var(--admin-text-muted);margin-top:0.5rem;margin-bottom:0.3rem">Or Direct Document URL</label>
+              <input type="text" name="document_url" id="trekDocUrlInput" value="${esc(t ? (t.document_url || '') : '')}" placeholder="/uploads/... or https://...">
+            </div>
+          </div>
+        </div>
       </div>
       <div style="margin-top:2rem;display:flex;justify-content:flex-end;gap:1rem">
         <button type="button" class="btn-admin-outline" onclick="closeAdminModal()">Cancel</button>
@@ -423,6 +463,7 @@ async function handleSaveTrek(e, id) {
   const formData = new FormData(form);
   const body = Object.fromEntries(formData.entries());
   try {
+    let savedTrekId = id;
     if (id) {
       await adminApi('/api/admin/treks/' + id, {
         method: 'PUT',
@@ -431,16 +472,94 @@ async function handleSaveTrek(e, id) {
       });
       showToast('Trek updated successfully!');
     } else {
-      await adminApi('/api/admin/treks', {
+      const created = await adminApi('/api/admin/treks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
+      savedTrekId = created ? created.id : null;
       showToast('New trek created!');
     }
+
+    // Check if a document file was chosen to upload
+    const fileInput = document.getElementById('trekDocFileInput');
+    if (fileInput && fileInput.files && fileInput.files.length > 0 && savedTrekId) {
+      const docData = new FormData();
+      docData.append('document', fileInput.files[0]);
+      await fetch(`/api/admin/treks/${savedTrekId}/document`, {
+        method: 'POST',
+        credentials: 'include',
+        body: docData
+      });
+    }
+
     closeAdminModal();
     renderTreksTab();
   } catch (err) { alert('Error: ' + err.message); }
+}
+
+async function handleUploadTrekDocument(trekId) {
+  const fileInput = document.getElementById('trekDocFileInput');
+  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+    alert('Please choose a PDF or document file first.');
+    return;
+  }
+  const formData = new FormData();
+  formData.append('document', fileInput.files[0]);
+  try {
+    const res = await fetch(`/api/admin/treks/${trekId}/document`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    showToast('Document uploaded successfully!');
+    
+    const docUrlInput = document.getElementById('trekDocUrlInput');
+    const docNameInput = document.getElementById('trekDocNameInput');
+    if (docUrlInput) docUrlInput.value = data.document_url;
+    if (docNameInput) docNameInput.value = data.document_name;
+
+    const preview = document.getElementById('trekDocPreviewSection');
+    if (preview) {
+      preview.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;padding:0.75rem 1rem;border-radius:6px;border:1px solid #bbf7d0;flex-wrap:wrap;gap:0.5rem">
+          <div style="display:flex;align-items:center;gap:0.6rem">
+            <span style="font-size:1.4rem">📄</span>
+            <div>
+              <a href="${esc(data.document_url)}" target="_blank" style="font-weight:600;color:var(--admin-primary);text-decoration:underline">${esc(data.document_name || 'View Uploaded Document')}</a>
+              <div style="font-size:0.75rem;color:var(--admin-text-muted)">${esc(data.document_url)}</div>
+            </div>
+          </div>
+          <button type="button" class="btn-admin-danger btn-admin-sm" onclick="handleRemoveTrekDocument(${trekId})">🗑️ Remove Document</button>
+        </div>
+      `;
+    }
+    renderTreksTab();
+  } catch (err) {
+    alert('Upload failed: ' + err.message);
+  }
+}
+
+async function handleRemoveTrekDocument(trekId) {
+  if (!confirm('Are you sure you want to remove the brochure/voucher document from this trek?')) return;
+  try {
+    await adminApi(`/api/admin/treks/${trekId}/document`, { method: 'DELETE' });
+    showToast('Document removed successfully');
+    const docUrlInput = document.getElementById('trekDocUrlInput');
+    const docNameInput = document.getElementById('trekDocNameInput');
+    if (docUrlInput) docUrlInput.value = '';
+    if (docNameInput) docNameInput.value = '';
+
+    const preview = document.getElementById('trekDocPreviewSection');
+    if (preview) {
+      preview.innerHTML = '<div style="font-size:0.85rem;color:var(--admin-text-muted);font-style:italic">No voucher/PDF currently attached. Upload a file below or enter a link.</div>';
+    }
+    renderTreksTab();
+  } catch (err) {
+    alert('Failed to remove document: ' + err.message);
+  }
 }
 
 async function handleDeleteTrek(id, name) {

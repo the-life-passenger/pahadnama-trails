@@ -44,6 +44,8 @@ CREATE TABLE IF NOT EXISTS treks (
   meeting_point TEXT DEFAULT '',
   pickups TEXT DEFAULT '[]',
   things_to_carry TEXT DEFAULT '[]',
+  document_url TEXT DEFAULT '',
+  document_name TEXT DEFAULT '',
   instructions TEXT DEFAULT '',
   cancellation_policy TEXT DEFAULT '',
   is_featured INTEGER DEFAULT 1,
@@ -125,6 +127,18 @@ CREATE TABLE IF NOT EXISTS settings (
 
 try {
   db.prepare("ALTER TABLE bookings ADD COLUMN customer_age INTEGER DEFAULT NULL").run();
+} catch (e) {
+  // column already exists
+}
+
+try {
+  db.prepare("ALTER TABLE treks ADD COLUMN document_url TEXT DEFAULT ''").run();
+} catch (e) {
+  // column already exists
+}
+
+try {
+  db.prepare("ALTER TABLE treks ADD COLUMN document_name TEXT DEFAULT ''").run();
 } catch (e) {
   // column already exists
 }

@@ -50,6 +50,21 @@ const upload = multer({
   }
 });
 
+// Multer storage for Trek Documents / PDF Vouchers
+const uploadDoc = multer({
+  storage,
+  limits: { fileSize: 30 * 1024 * 1024 }, // 30MB limit for brochures & PDFs
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const allowedExts = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.webp'];
+    if (allowedExts.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF, Word documents (.doc, .docx), or Image files are allowed'));
+    }
+  }
+});
+
 // Admin authentication middleware
 function requireAdmin(req, res, next) {
   let token = req.cookies.admin_session || req.headers['x-admin-token'];
@@ -78,6 +93,14 @@ function formatTrek(t) {
   const photos = db.prepare('SELECT * FROM photos WHERE trek_id = ? ORDER BY id ASC').all(t.id);
   const faqs = db.prepare('SELECT * FROM faqs WHERE trek_id = ? ORDER BY order_num ASC, id ASC').all(t.id);
 
+  // Fetch approved customer reviews specific to this trek
+  const reviews = db.prepare(`
+    SELECT id, name, rating, comment, photo, created_at 
+    FROM feedback 
+    WHERE (trek_id = ? OR LOWER(trek_name) = LOWER(?)) AND approved = 1 
+    ORDER BY id DESC
+  `).all(t.id, t.name);
+
   // Compute next available weekend date
   const upcoming = dates.find(d => d.status !== 'FULL' && d.status !== 'CANCELLED');
 
@@ -92,6 +115,9 @@ function formatTrek(t) {
     dates,
     photos,
     faqs,
+    reviews,
+    document_url: t.document_url || '',
+    document_name: t.document_name || '',
     next_date: upcoming ? upcoming.event_date : null,
     next_day: upcoming ? upcoming.day_of_week : null,
     next_status: upcoming ? upcoming.status : null
@@ -580,12 +606,12 @@ app.post('/api/admin/treks', requireAdmin, (req, res) => {
         name, slug, tagline, location, region, difficulty, duration, distance, height, season,
         price, original_price, cover_photo, short_description, description, highlights, itinerary,
         inclusions, exclusions, meeting_point, pickups, things_to_carry, instructions, cancellation_policy,
-        is_featured, status
+        document_url, document_name, is_featured, status
       ) VALUES (
         ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?, ?,
-        ?, ?
+        ?, ?, ?, ?
       )
     `);
 
@@ -614,6 +640,8 @@ app.post('/api/admin/treks', requireAdmin, (req, res) => {
       JSON.stringify(Array.isArray(b.things_to_carry) ? b.things_to_carry : (b.things_to_carry ? b.things_to_carry.split('\n').filter(Boolean) : [])),
       b.instructions || '',
       b.cancellation_policy || '',
+      b.document_url || '',
+      b.document_name || '',
       b.is_featured ? 1 : 0,
       b.status || 'active'
     );
@@ -640,7 +668,9 @@ app.put('/api/admin/treks/:id', requireAdmin, (req, res) => {
         name = ?, tagline = ?, location = ?, region = ?, difficulty = ?, duration = ?, distance = ?, height = ?, season = ?,
         price = ?, original_price = ?, cover_photo = ?, short_description = ?, description = ?,
         highlights = ?, itinerary = ?, inclusions = ?, exclusions = ?, meeting_point = ?, pickups = ?,
-        things_to_carry = ?, instructions = ?, cancellation_policy = ?, is_featured = ?, status = ?,
+        things_to_carry = ?, instructions = ?, cancellation_policy = ?,
+        document_url = ?, document_name = ?,
+        is_featured = ?, status = ?,
         updated_at = (datetime('now'))
       WHERE id = ?
     `).run(
@@ -667,6 +697,8 @@ app.put('/api/admin/treks/:id', requireAdmin, (req, res) => {
       b.things_to_carry !== undefined ? JSON.stringify(Array.isArray(b.things_to_carry) ? b.things_to_carry : b.things_to_carry.split('\n').filter(Boolean)) : existing.things_to_carry,
       b.instructions !== undefined ? b.instructions : existing.instructions,
       b.cancellation_policy !== undefined ? b.cancellation_policy : existing.cancellation_policy,
+      b.document_url !== undefined ? b.document_url : (existing.document_url || ''),
+      b.document_name !== undefined ? b.document_name : (existing.document_name || ''),
       b.is_featured !== undefined ? (b.is_featured ? 1 : 0) : existing.is_featured,
       b.status !== undefined ? b.status : existing.status,
       id
@@ -733,6 +765,48 @@ app.delete('/api/admin/photos/:id', requireAdmin, (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete photo' });
+  }
+});
+
+// Document / Voucher management: Upload PDF/doc for Trek
+app.post('/api/admin/treks/:id/document', requireAdmin, uploadDoc.single('document'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No document file uploaded' });
+    const docUrl = `/uploads/${req.file.filename}`;
+    const docName = req.file.originalname || path.basename(req.file.filename);
+    
+    // Check if there was an old document file on disk and clean up if it was in /uploads/
+    const existing = db.prepare('SELECT document_url FROM treks WHERE id = ?').get(req.params.id);
+    if (existing && existing.document_url && existing.document_url.startsWith('/uploads/')) {
+      const oldDiskPath = path.join(UPLOADS_DIR, path.basename(existing.document_url));
+      if (fs.existsSync(oldDiskPath)) {
+        try { fs.unlinkSync(oldDiskPath); } catch (e) {}
+      }
+    }
+
+    db.prepare('UPDATE treks SET document_url = ?, document_name = ? WHERE id = ?').run(docUrl, docName, req.params.id);
+    res.json({ ok: true, document_url: docUrl, document_name: docName });
+  } catch (err) {
+    console.error('Error uploading document:', err);
+    res.status(500).json({ error: 'Failed to upload trek document: ' + err.message });
+  }
+});
+
+// Document / Voucher management: Delete / Remove document for Trek
+app.delete('/api/admin/treks/:id/document', requireAdmin, (req, res) => {
+  try {
+    const existing = db.prepare('SELECT document_url FROM treks WHERE id = ?').get(req.params.id);
+    if (existing && existing.document_url && existing.document_url.startsWith('/uploads/')) {
+      const diskPath = path.join(UPLOADS_DIR, path.basename(existing.document_url));
+      if (fs.existsSync(diskPath)) {
+        try { fs.unlinkSync(diskPath); } catch (e) {}
+      }
+    }
+    db.prepare('UPDATE treks SET document_url = ?, document_name = ? WHERE id = ?').run('', '', req.params.id);
+    res.json({ ok: true, message: 'Document removed successfully' });
+  } catch (err) {
+    console.error('Error removing document:', err);
+    res.status(500).json({ error: 'Failed to remove trek document' });
   }
 });
 

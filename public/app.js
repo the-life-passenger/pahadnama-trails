@@ -337,8 +337,83 @@ function renderTrekModalContent(t) {
   ` : '<p style="color:var(--text-muted)">Itinerary will be updated shortly by our coordinators.</p>';
 
   // Inclusions & Exclusions
-  const inclusionsList = (t.inclusions && t.inclusions.length) ? t.inclusions.map(i => `<li>? ${esc(i)}</li>`).join('') : '<li>? Transport & Local Guides</li>';
-  const exclusionsList = (t.exclusions && t.exclusions.length) ? t.exclusions.map(e => `<li>? ${esc(e)}</li>`).join('') : '<li>? Personal expenses</li>';
+  const inclusionsList = (t.inclusions && t.inclusions.length) ? t.inclusions.map(i => `<li><span style="color:var(--primary);font-weight:bold;margin-right:6px">•</span> ${esc(i)}</li>`).join('') : '<li><span style="color:var(--primary);font-weight:bold;margin-right:6px">•</span> Transport &amp; Local Guides</li>';
+  const exclusionsList = (t.exclusions && t.exclusions.length) ? t.exclusions.map(e => `<li><span style="color:#ef4444;font-weight:bold;margin-right:6px">•</span> ${esc(e)}</li>`).join('') : '<li><span style="color:#ef4444;font-weight:bold;margin-right:6px">•</span> Personal expenses</li>';
+
+  // Things to Carry
+  let carryHtml = '';
+  if (t.things_to_carry && t.things_to_carry.length > 0) {
+    carryHtml = `
+      <div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:1.25rem;margin-bottom:2rem;box-shadow:var(--shadow-sm)">
+        <h4 style="font-family:var(--font-heading);font-size:1.05rem;color:var(--primary-dark);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.4rem">
+          <span>🎒</span> Things to Carry
+        </h4>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:0.6rem">
+          ${t.things_to_carry.map(item => `
+            <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.88rem;color:var(--text-main);background:var(--bg-subtle);padding:0.5rem 0.75rem;border-radius:6px;border:1px solid var(--border-light)">
+              <span style="color:var(--primary);font-weight:bold;font-size:0.95rem">✓</span>
+              <span>${esc(item)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // Trek Voucher / PDF Brochure Document
+  let docHtml = '';
+  if (t.document_url) {
+    const docTitle = t.document_name || `${t.name} — Trek Voucher & Brochure`;
+    docHtml = `
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;background:linear-gradient(135deg, #f0fdf4 0%, #e6f9ed 100%);border:1.5px solid #86efac;border-radius:var(--radius-sm);padding:1.1rem 1.3rem;margin-bottom:2rem">
+        <div style="display:flex;align-items:center;gap:0.85rem">
+          <span style="font-size:2rem">📄</span>
+          <div>
+            <div style="font-weight:700;font-size:1rem;color:var(--primary-dark)">${esc(docTitle)}</div>
+            <div style="font-size:0.82rem;color:var(--text-muted)">Official itinerary voucher &amp; route guide (PDF)</div>
+          </div>
+        </div>
+        <a href="${esc(t.document_url)}" target="_blank" download class="btn btn-outline" style="background:#fff;border-color:var(--primary);color:var(--primary);font-weight:700;font-size:0.88rem;display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.1rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);text-decoration:none">
+          <span>⬇ Download PDF / Voucher</span>
+        </a>
+      </div>
+    `;
+  }
+
+  // Trek Feedback / Reviews
+  let reviewsHtml = '';
+  if (t.reviews && t.reviews.length > 0) {
+    reviewsHtml = `
+      <div style="margin-bottom: 2rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.85rem">
+          <h4 class="modal-section-title" style="margin-bottom:0">Trekker Feedback &amp; Reviews (${t.reviews.length})</h4>
+          <a href="#feedback" onclick="closeTrekModal()" style="font-size:0.85rem;color:var(--primary);font-weight:600;text-decoration:none">+ Share Your Experience</a>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:0.85rem">
+          ${t.reviews.map(r => {
+            const stars = '★'.repeat(r.rating || 5) + '☆'.repeat(Math.max(0, 5 - (r.rating || 5)));
+            return `
+              <div style="background:var(--bg-subtle);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:1rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem">
+                  <strong style="color:var(--primary-dark);font-size:0.92rem">${esc(r.name)}</strong>
+                  <span style="color:#f59e0b;font-size:0.88rem">${stars}</span>
+                </div>
+                <p style="font-size:0.86rem;color:var(--text-main);line-height:1.5;margin-bottom:0.35rem;font-style:italic">"${esc(r.comment)}"</p>
+                ${r.created_at ? `<small style="color:var(--text-muted);font-size:0.75rem">${esc(formatDate(r.created_at))}</small>` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  } else {
+    reviewsHtml = `
+      <div style="margin-bottom:2rem;background:var(--bg-subtle);border:1px dashed var(--border-light);border-radius:var(--radius-sm);padding:1rem 1.2rem;text-align:center">
+        <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:0.4rem">No reviews yet for this trail. Have you trekked with us here?</p>
+        <a href="#feedback" onclick="closeTrekModal()" class="btn btn-outline" style="font-size:0.8rem;padding:0.35rem 0.8rem">+ Write a Review</a>
+      </div>
+    `;
+  }
 
   // Dates selection chips
   let datesChipsHtml = '';
@@ -426,6 +501,9 @@ function renderTrekModalContent(t) {
       </div>
     </div>
 
+    <!-- Trek Brochure / Itinerary PDF Download -->
+    ${docHtml}
+
     <!-- Detailed Itinerary -->
     <div style="margin-bottom:2rem">
       <h4 class="modal-section-title">Batch Itinerary</h4>
@@ -444,6 +522,9 @@ function renderTrekModalContent(t) {
       </div>
     </div>
 
+    <!-- Things to Carry -->
+    ${carryHtml}
+
     <!-- Meeting Point & Pickups -->
     ${t.meeting_point ? `
       <div style="background-color:var(--bg-subtle);border-radius:var(--radius-sm);padding:1.2rem;margin-bottom:2rem;border:1px solid var(--border-light)">
@@ -451,6 +532,9 @@ function renderTrekModalContent(t) {
         <p style="font-size:0.88rem;color:var(--text-main)">${esc(t.meeting_point)}</p>
       </div>
     ` : ''}
+
+    <!-- Feedback & Reviews for this Trek -->
+    ${reviewsHtml}
 
     <!-- FAQs -->
     ${faqsHtml}
@@ -510,9 +594,27 @@ function closeTrekModal() {
   document.body.style.overflow = '';
 }
 
-// Quick book action from card
-function quickBookTrek(id) {
-  openTrekModal(id);
+// Quick book action from card: directly open booking checkout / payment modal
+async function quickBookTrek(id) {
+  let trek = allTreks ? allTreks.find(x => x.id === id) : null;
+  if (!trek || !trek.dates) {
+    try {
+      trek = await api('/api/treks/' + id);
+    } catch (e) {
+      console.error(e);
+      return openTrekModal(id);
+    }
+  }
+  currentTrek = trek;
+  const upcoming = (trek.dates || []).find(d => d.status !== 'FULL' && d.status !== 'CANCELLED') || (trek.dates && trek.dates[0]);
+  if (upcoming) {
+    selectedDateId = upcoming.id;
+    currentSelectedDateStr = `${formatDate(upcoming.event_date)} (${upcoming.day_of_week})`;
+  } else {
+    selectedDateId = null;
+    currentSelectedDateStr = 'Upcoming Weekend Batch';
+  }
+  openPaymentOptions('razorpay');
 }
 
 // Book via WhatsApp for currently viewed trek
