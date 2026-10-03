@@ -176,7 +176,11 @@ const defaultSettings = {
   razorpay_currency: 'INR',
   site_bg_color: '#ffffff',
   site_bg_image: '',
-  site_bg_opacity: '15'
+  site_bg_opacity: '15',
+  announcement_enabled: 'true',
+  announcement_text: 'Monsoon & Post-Monsoon Sahyadri Batches: Booking open for upcoming Saturday & Sunday trails!',
+  announcement_link_text: 'Groups of 6+? Custom Trek →',
+  announcement_link_url: '#custom-trek'
 };
 
 const setStmt = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');

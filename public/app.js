@@ -106,6 +106,33 @@ async function loadSettings() {
         img.src = siteSettings.brand_logo;
       });
     }
+
+    // Dynamic Top Announcement Bar configuration
+    const annBar = document.getElementById('announcementBar');
+    const annText = document.getElementById('announcementText');
+    const annLink = document.getElementById('announcementLink');
+    if (annBar) {
+      const isEnabled = siteSettings.announcement_enabled !== 'false' && siteSettings.announcement_enabled !== '0';
+      if (!isEnabled) {
+        annBar.style.display = 'none';
+      } else {
+        annBar.style.display = '';
+        if (annText && siteSettings.announcement_text) {
+          annText.innerHTML = esc(siteSettings.announcement_text);
+        }
+        if (annLink) {
+          if (siteSettings.announcement_link_text && siteSettings.announcement_link_text.trim()) {
+            annLink.textContent = siteSettings.announcement_link_text;
+            annLink.style.display = '';
+          } else {
+            annLink.style.display = 'none';
+          }
+          if (siteSettings.announcement_link_url) {
+            annLink.setAttribute('href', siteSettings.announcement_link_url);
+          }
+        }
+      }
+    }
   } catch (e) {
     console.warn('Could not fetch settings:', e);
   }
@@ -257,11 +284,9 @@ function renderTreks(filter = 'all') {
         <div class="card-body">
           <div class="card-location"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg> ${esc(t.location)}</div>
           <h3 class="card-title" onclick="openTrekModal(${t.id})" style="cursor:pointer">${esc(t.name)}</h3>
-          <p class="card-desc">${esc(t.short_description || t.description)}</p>
 
-          ${dateSlotHtml}
-
-          <div class="card-footer">
+          <!-- Product-style Immediate Pricing & Quick Booking Action (Placed up top) -->
+          <div class="card-booking-row">
             <div class="price-block">
               <small>Starting from</small>
               <div>
@@ -271,10 +296,14 @@ function renderTreks(filter = 'all') {
             </div>
 
             <div class="card-actions">
-              <button class="btn btn-sm btn-outline" onclick="openTrekModal(${t.id})">Details</button>
               <button class="btn btn-sm btn-primary" onclick="quickBookTrek(${t.id})">Book Now</button>
+              <button class="btn btn-sm btn-outline" onclick="openTrekModal(${t.id})">Details</button>
             </div>
           </div>
+
+          ${dateSlotHtml}
+
+          <p class="card-desc">${esc(t.short_description || t.description)}</p>
         </div>
       </article>
     `;
@@ -489,6 +518,25 @@ function renderTrekModalContent(t) {
       <div class="meta-item">
         <small>Best Season</small>
         <strong>${esc(t.season || 'Monsoon & Winter')}</strong>
+      </div>
+    </div>
+
+    <!-- Quick Top Booking Action in Modal (Instant Product Checkout) -->
+    <div class="modal-top-booking-bar">
+      <div class="price-block">
+        <small>Total Trek Fee</small>
+        <div>
+          <span class="price-amount">${formatInr(t.price)}</span>
+          <span style="font-size:0.85rem;color:var(--text-muted)">/ person</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-primary" onclick="openPaymentOptions()">
+          <span>Book &amp; Pay Online &rarr;</span>
+        </button>
+        <button class="btn btn-whatsapp" onclick="bookOnWhatsAppCurrent()">
+          <span>Book via WhatsApp</span>
+        </button>
       </div>
     </div>
 

@@ -292,6 +292,7 @@ async function renderTreksTab() {
                       <button class="btn-admin-primary btn-admin-sm" onclick="openEditTrekModal(${t.id})">Edit</button>
                       <button class="btn-admin-outline btn-admin-sm" onclick="openDatesForTrek(${t.id})">Dates</button>
                       <button class="btn-admin-outline btn-admin-sm" onclick="openPhotosForTrek(${t.id})">Photos</button>
+                      <button class="btn-admin-outline btn-admin-sm" style="border-color:#16a34a;color:#16a34a;font-weight:600" onclick="openVoucherModalForTrek(${t.id})">📄 Voucher</button>
                       <button class="btn-admin-danger btn-admin-sm" onclick="handleDeleteTrek(${t.id}, '${esc(t.name)}')">Delete</button>
                     </div>
                   </td>
@@ -330,6 +331,18 @@ function openTrekFormModal(t) {
       <h2 style="font-family:var(--font-heading);font-size:1.5rem;font-weight:800">${isEdit ? 'Edit Trek' : 'Add New Trek'}</h2>
       <p style="font-size:0.85rem;color:var(--admin-text-muted)">All information entered here reflects dynamically on the website.</p>
     </div>
+    ${isEdit ? `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:0.75rem 1rem;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.6rem">
+        <div style="display:flex;align-items:center;gap:0.6rem;font-size:0.9rem;color:#166534">
+          <span style="font-size:1.4rem">📄</span>
+          <div>
+            <strong>Trek Brochure / Voucher PDF:</strong>
+            ${t.document_url ? `<a href="${esc(t.document_url)}" target="_blank" style="text-decoration:underline;color:#15803d;margin-left:4px;font-weight:700">${esc(t.document_name || 'Active Document Attached')}</a>` : '<em style="color:#64748b;margin-left:4px">No document attached yet</em>'}
+          </div>
+        </div>
+        <button type="button" class="btn-admin-primary btn-admin-sm" onclick="openVoucherModalForTrek(${t.id})">Upload / Manage Voucher &rarr;</button>
+      </div>
+    ` : ''}
     <form id="trekForm" onsubmit="handleSaveTrek(event, ${t ? t.id : 'null'})">
       <div class="form-grid">
         <div class="admin-form-group">
@@ -556,6 +569,131 @@ async function handleRemoveTrekDocument(trekId) {
     if (preview) {
       preview.innerHTML = '<div style="font-size:0.85rem;color:var(--admin-text-muted);font-style:italic">No voucher/PDF currently attached. Upload a file below or enter a link.</div>';
     }
+    renderTreksTab();
+  } catch (err) {
+    alert('Failed to remove document: ' + err.message);
+  }
+}
+
+// Dedicated 1-Click Voucher Manager Modal for Existing Treks
+async function openVoucherModalForTrek(id) {
+  try {
+    const t = await adminApi('/api/treks/' + id);
+    const modal = document.getElementById('adminModal');
+    const body = document.getElementById('adminModalBody');
+
+    body.innerHTML = `
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-family:var(--font-heading);font-size:1.4rem;font-weight:800;color:var(--admin-text)">
+          📄 Trek Voucher / PDF Brochure &mdash; ${esc(t.name)}
+        </h2>
+        <p style="font-size:0.85rem;color:var(--admin-text-muted)">
+          Upload or update the itinerary PDF voucher for trekkers to view and download from the trek details modal.
+        </p>
+      </div>
+
+      <!-- Current Document Status Card -->
+      <div id="voucherModalStatusCard" style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.5rem">
+        <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:0.6rem;color:var(--admin-text)">Current Attached Voucher</h4>
+        ${t.document_url ? `
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;padding:0.9rem 1.1rem;border-radius:6px;border:1.5px solid #86efac;flex-wrap:wrap;gap:0.75rem">
+            <div style="display:flex;align-items:center;gap:0.75rem">
+              <span style="font-size:1.8rem">📄</span>
+              <div>
+                <a href="${esc(t.document_url)}" target="_blank" style="font-weight:700;color:var(--admin-primary);text-decoration:underline;font-size:0.95rem">${esc(t.document_name || 'View Uploaded Document')}</a>
+                <div style="font-size:0.78rem;color:var(--admin-text-muted)">${esc(t.document_url)}</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:0.5rem">
+              <a href="${esc(t.document_url)}" target="_blank" class="btn-admin-outline btn-admin-sm">👁️ Preview</a>
+              <button type="button" class="btn-admin-danger btn-admin-sm" onclick="handleRemoveVoucherFromDedicatedModal(${t.id})">🗑️ Remove Voucher</button>
+            </div>
+          </div>
+        ` : `
+          <div style="background:#fff;padding:1rem;border-radius:6px;border:1px dashed var(--admin-border);color:var(--admin-text-muted);font-size:0.88rem;text-align:center">
+            ℹ️ No brochure or PDF voucher attached yet to this trek. Upload a file below.
+          </div>
+        `}
+      </div>
+
+      <!-- Upload New File Section -->
+      <div style="background:#fff;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.5rem">
+        <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:0.5rem">Upload Document File (.pdf, .doc, .docx, images)</h4>
+        <p style="font-size:0.82rem;color:var(--admin-text-muted);margin-bottom:0.85rem">Directly upload your itinerary PDF or brochure from your phone or laptop.</p>
+        <form onsubmit="handleDedicatedVoucherUpload(event, ${t.id})" style="display:flex;flex-direction:column;gap:0.75rem">
+          <input type="file" name="document" id="dedicatedVoucherFileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required style="font-size:0.9rem;padding:0.5rem;border:1px solid var(--admin-border);border-radius:6px">
+          <div style="display:flex;justify-content:flex-end">
+            <button type="submit" class="btn-admin-primary">⬆️ Upload &amp; Set as Active Voucher</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Or Manual URL Section -->
+      <div style="background:#f8fafc;padding:1rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.5rem">
+        <h4 style="font-size:0.88rem;font-weight:700;margin-bottom:0.4rem">Or Link External Document / Cloud URL</h4>
+        <form onsubmit="handleDedicatedVoucherUrlSave(event, ${t.id})" style="display:flex;gap:0.5rem;flex-wrap:wrap">
+          <input type="text" name="doc_url" value="${esc(t.document_url || '')}" placeholder="https://... or /uploads/..." style="flex:1;min-width:200px;font-size:0.85rem;padding:0.45rem">
+          <input type="text" name="doc_name" value="${esc(t.document_name || '')}" placeholder="Document Title (e.g. Brochure.pdf)" style="flex:1;min-width:180px;font-size:0.85rem;padding:0.45rem">
+          <button type="submit" class="btn-admin-outline">Save Link</button>
+        </form>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end">
+        <button type="button" class="btn-admin-outline" onclick="closeAdminModal()">Close</button>
+      </div>
+    `;
+
+    modal.classList.add('open');
+  } catch (err) {
+    alert('Error loading trek voucher details: ' + err.message);
+  }
+}
+
+async function handleDedicatedVoucherUpload(e, trekId) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  try {
+    const res = await fetch(`/api/admin/treks/${trekId}/document`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    showToast('Trek voucher PDF uploaded and attached!');
+    openVoucherModalForTrek(trekId);
+    renderTreksTab();
+  } catch (err) {
+    alert('Upload failed: ' + err.message);
+  }
+}
+
+async function handleDedicatedVoucherUrlSave(e, trekId) {
+  e.preventDefault();
+  const form = e.target;
+  const docUrl = form.elements['doc_url'].value.trim();
+  const docName = form.elements['doc_name'].value.trim() || 'Trek Brochure.pdf';
+  try {
+    await adminApi(`/api/admin/treks/${trekId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ document_url: docUrl, document_name: docName })
+    });
+    showToast('Document link saved!');
+    openVoucherModalForTrek(trekId);
+    renderTreksTab();
+  } catch (err) {
+    alert('Save failed: ' + err.message);
+  }
+}
+
+async function handleRemoveVoucherFromDedicatedModal(trekId) {
+  if (!confirm('Are you sure you want to remove the voucher / PDF brochure for this trek?')) return;
+  try {
+    await adminApi(`/api/admin/treks/${trekId}/document`, { method: 'DELETE' });
+    showToast('Document removed successfully');
+    openVoucherModalForTrek(trekId);
     renderTreksTab();
   } catch (err) {
     alert('Failed to remove document: ' + err.message);
@@ -1263,6 +1401,50 @@ async function renderSettingsTab() {
         `}
       </div>
 
+      <!-- TOP ANNOUNCEMENT BANNER SETTINGS -->
+      <div class="admin-panel" style="max-width:800px;margin-bottom:2rem">
+        <div class="admin-panel-head">
+          <div>
+            <h3>📢 Top Announcement Bar (Above Navigation Bar)</h3>
+            <small style="color:var(--admin-text-muted)">Show or hide the announcement strip at the very top of your website, and customize its text and link.</small>
+          </div>
+          <span class="table-badge ${s.announcement_enabled !== 'false' && s.announcement_enabled !== '0' ? 'active' : 'paused'}">
+            ${s.announcement_enabled !== 'false' && s.announcement_enabled !== '0' ? 'ENABLED (VISIBLE)' : 'HIDDEN'}
+          </span>
+        </div>
+
+        <form onsubmit="handleSaveAnnouncementSettings(event)">
+          <div class="admin-form-group">
+            <label>1. Show Announcement Bar on Website?</label>
+            <select name="announcement_enabled" id="announcementEnabledSelect">
+              <option value="true" ${s.announcement_enabled !== 'false' && s.announcement_enabled !== '0' ? 'selected' : ''}>Yes &mdash; Show Announcement Bar</option>
+              <option value="false" ${s.announcement_enabled === 'false' || s.announcement_enabled === '0' ? 'selected' : ''}>No &mdash; Hide / Turn Off Announcement Bar</option>
+            </select>
+            <small>If set to "Hide", the bar above the navigation bar will not be shown to visitors.</small>
+          </div>
+
+          <div class="admin-form-group">
+            <label>2. Announcement Text Message *</label>
+            <input type="text" name="announcement_text" value="${esc(s.announcement_text || 'Monsoon & Post-Monsoon Sahyadri Batches: Booking open for upcoming Saturday & Sunday trails!')}" required placeholder="e.g. Monsoon & Post-Monsoon Sahyadri Batches: Booking open!">
+            <small>This text appears prominently next to the live pulse indicator at the very top.</small>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div class="admin-form-group">
+              <label>3. Action Link Label (Optional)</label>
+              <input type="text" name="announcement_link_text" value="${esc(s.announcement_link_text || 'Groups of 6+? Custom Trek →')}" placeholder="e.g. Groups of 6+? Custom Trek →">
+              <small>Leave blank if you don't want a button on the right.</small>
+            </div>
+            <div class="admin-form-group">
+              <label>4. Action Link Target (URL / Section)</label>
+              <input type="text" name="announcement_link_url" value="${esc(s.announcement_link_url || '#custom-trek')}" placeholder="e.g. #custom-trek or https://...">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-admin-primary" style="margin-top:0.5rem">Save Announcement Bar Settings</button>
+        </form>
+      </div>
+
       <div class="admin-panel" style="max-width:800px">
         <div class="admin-panel-head">
           <div>
@@ -1643,6 +1825,24 @@ async function handleSaveBgSettings(e) {
     showToast('Theme & background appearance saved successfully!');
     renderSettingsTab();
   } catch (err) { alert('Failed to save theme settings: ' + err.message); }
+}
+
+async function handleSaveAnnouncementSettings(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const body = Object.fromEntries(formData.entries());
+  try {
+    await adminApi('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    showToast('Top announcement bar settings saved!');
+    renderSettingsTab();
+  } catch (err) {
+    alert('Failed to save announcement settings: ' + err.message);
+  }
 }
 
 async function handleUploadBgImage(e) {
