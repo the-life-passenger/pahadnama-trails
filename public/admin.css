@@ -5,7 +5,7 @@
   --admin-sidebar-hover: #1f2d25;
   --admin-accent: #d76d2e;
   --admin-accent-hover: #bd591e;
-  --admin-text-main: #1e293b;
+  --admin-text-main: #191f1b;
   --admin-text-muted: #64748b;
   --admin-card: #ffffff;
   --admin-border: #e2e8f0;
@@ -308,7 +308,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   justify-content: space-between;
 }
 .topbar-subtitle { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; color: var(--admin-accent); }
-.topbar-title { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: #0f172a; }
+.topbar-title { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: #111412; }
 
 .admin-container { padding: 2rem 2.5rem; max-width: 1400px; }
 
@@ -338,7 +338,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
 .stat-card { background: #ffffff; border-radius: 12px; padding: 1.5rem; border: 1px solid var(--admin-border); display: flex; align-items: center; gap: 1.2rem; }
 .stat-icon-wrap { width: 52px; height: 52px; border-radius: 10px; background: #f8fafc; border: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
-.stat-val { font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #0f172a; line-height: 1.1; }
+.stat-val { font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #111412; line-height: 1.1; }
 .stat-label { font-size: 0.82rem; color: var(--admin-text-muted); font-weight: 600; }
 
 /* Admin Panels & Tables */
@@ -382,7 +382,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .slot-quick-add { background: #f8fafc; border: 1px dashed var(--admin-border); border-radius: 8px; padding: 1.2rem; margin-bottom: 1.5rem; }
 
 /* Admin Modal */
-.admin-modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+.admin-modal-overlay { position: fixed; inset: 0; background: rgba(17, 20, 18, 0.75); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
 .admin-modal-overlay.open { opacity: 1; pointer-events: auto; }
 .admin-modal-dialog { background: #ffffff; border-radius: 16px; max-width: 780px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; padding: 2.2rem; box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25); }
 .admin-modal-close {
@@ -451,7 +451,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 }
 
 /* Admin Toast */
-.admin-toast { position: fixed; bottom: 2rem; right: 2rem; background: #0f172a; color: #ffffff; padding: 0.85rem 1.4rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); z-index: 2000; opacity: 0; transform: translateY(10px); transition: all 0.25s ease; pointer-events: none; }
+.admin-toast { position: fixed; bottom: 2rem; right: 2rem; background: #111412; color: #ffffff; padding: 0.85rem 1.4rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); z-index: 2000; opacity: 0; transform: translateY(10px); transition: all 0.25s ease; pointer-events: none; }
 .admin-toast.show { opacity: 1; transform: translateY(0); }
 
 @media (max-width: 900px) {
@@ -469,7 +469,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.65);
+    background: rgba(17, 20, 18, 0.65);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     z-index: 999;
@@ -563,7 +563,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
     border-radius: 8px;
     background: #f8fafc;
     border: 1px solid var(--admin-border);
-    color: #0f172a;
+    color: #111412;
     cursor: pointer;
     flex-shrink: 0;
     transition: all 0.15s ease;
@@ -631,7 +631,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   }
   .mobile-tab-pill:hover {
     background: #e2e8f0;
-    color: #0f172a;
+    color: #111412;
   }
   .mobile-tab-pill.active {
     background: var(--admin-accent);
@@ -875,7 +875,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   font-family: var(--font-heading);
   font-size: 0.95rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #111412;
   margin-bottom: 0.4rem;
   display: flex;
   align-items: center;
@@ -911,7 +911,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   border-radius: 4px;
   border: 1px solid #cbd5e1;
   font-weight: 700;
-  color: #0f172a;
+  color: #111412;
   font-family: monospace;
 }
 
@@ -937,7 +937,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   border-radius: 4px;
 }
 .password-toggle-btn:hover {
-  color: #0f172a;
+  color: #111412;
   background: #f1f5f9;
 }
 
@@ -945,19 +945,19 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #0f172a;
+  background: #111412;
   color: #ffffff;
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
   font-size: 0.88rem;
   font-weight: 700;
-  border: 1px solid #1e293b;
+  border: 1px solid #1e2520;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 .btn-admin-verify:hover {
-  background: #1e293b;
-  border-color: #334155;
+  background: #191f1b;
+  border-color: #2c3530;
 }
 .btn-admin-verify:disabled {
   opacity: 0.6;

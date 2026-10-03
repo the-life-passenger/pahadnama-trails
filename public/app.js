@@ -133,6 +133,18 @@ async function loadSettings() {
         }
       }
     }
+
+    // Dynamic Hero Section Background
+    const heroLayer = document.getElementById('heroImageLayer');
+    if (heroLayer && siteSettings.hero_bg_image) {
+      heroLayer.style.backgroundImage = `url('${siteSettings.hero_bg_image}')`;
+      if (siteSettings.hero_bg_opacity) {
+        const opVal = parseInt(siteSettings.hero_bg_opacity, 10);
+        if (!isNaN(opVal)) {
+          heroLayer.style.opacity = (Math.min(100, Math.max(10, opVal)) / 100).toString();
+        }
+      }
+    }
   } catch (e) {
     console.warn('Could not fetch settings:', e);
   }
@@ -271,12 +283,23 @@ function renderTreks(filter = 'all') {
       `;
     }
 
-    const coverPhoto = t.cover_photo || '/brand/pahadnama-logo.png';
+    const photoList = [t.cover_photo, ...(t.photos ? t.photos.map(p => p.url) : [])].filter(Boolean);
+    const uniquePhotos = Array.from(new Set(photoList));
+    if (uniquePhotos.length === 0) uniquePhotos.push('/brand/pahadnama-logo.png');
 
     return `
       <article class="trek-card" id="trek-card-${t.id}">
-        <div class="card-media" onclick="openTrekModal(${t.id})" style="cursor:pointer">
-          <img src="${esc(coverPhoto)}" alt="${esc(t.name)}" loading="lazy">
+        <div class="card-media trek-card-media-slider" onclick="openTrekModal(${t.id})" style="cursor:pointer" data-trek-id="${t.id}" title="Click to view details">
+          <div class="card-media-images">
+            ${uniquePhotos.map((url, idx) => `
+              <img src="${esc(url)}" alt="${esc(t.name)}" loading="lazy" class="card-slider-img ${idx === 0 ? 'active' : ''}" data-idx="${idx}">
+            `).join('')}
+          </div>
+          ${uniquePhotos.length > 1 ? `
+            <div class="card-slider-dots">
+              ${uniquePhotos.map((_, idx) => `<span class="slider-dot ${idx === 0 ? 'active' : ''}" data-dot="${idx}"></span>`).join('')}
+            </div>
+          ` : ''}
           <span class="card-difficulty-badge">${esc(t.difficulty)}</span>
           <span class="card-duration-badge">${esc(t.duration)}</span>
         </div>
@@ -308,6 +331,36 @@ function renderTreks(filter = 'all') {
       </article>
     `;
   }).join('');
+
+  // Start continuous card photo slideshow
+  setTimeout(startTrekCardSlideshows, 600);
+}
+
+// Continuous Trek Card Exterior Photo Slideshow
+let cardSlideshowTimer = null;
+function startTrekCardSlideshows() {
+  if (cardSlideshowTimer) clearInterval(cardSlideshowTimer);
+  cardSlideshowTimer = setInterval(() => {
+    document.querySelectorAll('.trek-card-media-slider').forEach(slider => {
+      const images = slider.querySelectorAll('.card-slider-img');
+      const dots = slider.querySelectorAll('.slider-dot');
+      if (images.length <= 1) return;
+      
+      let activeIdx = 0;
+      images.forEach((img, idx) => {
+        if (img.classList.contains('active')) activeIdx = idx;
+      });
+      
+      const nextIdx = (activeIdx + 1) % images.length;
+      images[activeIdx].classList.remove('active');
+      images[nextIdx].classList.add('active');
+      
+      if (dots.length > nextIdx) {
+        dots.forEach(d => d.classList.remove('active'));
+        dots[nextIdx].classList.add('active');
+      }
+    });
+  }, 3500);
 }
 
 // Populate trek dropdowns in forms
@@ -616,13 +669,55 @@ function renderTrekModalContent(t) {
   if (firstAvailableChip) {
     firstAvailableChip.click();
   }
+
+  // Start continuous modal photo slideshow
+  startModalHeroSlideshow(t);
+}
+
+// Continuous Trek Modal Interior Photo Slideshow
+let modalSlideshowTimer = null;
+let currentModalPhotoIdx = 0;
+
+function startModalHeroSlideshow(trek) {
+  if (modalSlideshowTimer) clearInterval(modalSlideshowTimer);
+  const photos = trek.photos || [];
+  if (photos.length <= 1) return;
+  
+  currentModalPhotoIdx = 0;
+  modalSlideshowTimer = setInterval(() => {
+    currentModalPhotoIdx = (currentModalPhotoIdx + 1) % photos.length;
+    const nextPhoto = photos[currentModalPhotoIdx];
+    const heroImg = document.getElementById('modalHeroImg');
+    if (!heroImg) return;
+    
+    heroImg.style.transition = 'opacity 0.35s ease';
+    heroImg.style.opacity = '0.4';
+    setTimeout(() => {
+      heroImg.src = nextPhoto.url;
+      heroImg.style.opacity = '1';
+    }, 200);
+
+    const thumbs = document.querySelectorAll('.gallery-thumb');
+    thumbs.forEach((th, idx) => {
+      if (idx === currentModalPhotoIdx) {
+        th.classList.add('active');
+        th.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      } else {
+        th.classList.remove('active');
+      }
+    });
+  }, 3500);
 }
 
 // Swap hero image in modal
 function swapModalHero(imgUrl, thumbElem) {
   const heroImg = document.getElementById('modalHeroImg');
   if (heroImg) heroImg.src = imgUrl;
-  document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+  const thumbs = document.querySelectorAll('.gallery-thumb');
+  thumbs.forEach((t, idx) => {
+    t.classList.remove('active');
+    if (t === thumbElem) currentModalPhotoIdx = idx;
+  });
   if (thumbElem) thumbElem.classList.add('active');
 }
 
@@ -637,6 +732,7 @@ function selectModalDate(dateId, dateStr, dayOfWeek, elem) {
 
 // Close Trek Modal
 function closeTrekModal() {
+  if (modalSlideshowTimer) clearInterval(modalSlideshowTimer);
   const modal = document.getElementById('trekModal');
   modal.classList.remove('open');
   document.body.style.overflow = '';
@@ -1462,6 +1558,62 @@ async function handleFeedbackSubmit(e) {
   }
 }
 
+// Legal Policies & Terms Modal
+function openPolicyModal(type = 'terms') {
+  const modal = document.getElementById('policyModal');
+  const body = document.getElementById('policyModalBody');
+  if (!modal || !body) return;
+
+  let title = 'Terms & Conditions';
+  let content = siteSettings.terms_conditions || 'Terms and conditions will be updated shortly.';
+
+  if (type === 'privacy') {
+    title = 'Privacy Policy';
+    content = siteSettings.privacy_policy || 'Privacy policy will be updated shortly.';
+  } else if (type === 'cancellation') {
+    title = 'Cancellation & Refund Policy';
+    content = siteSettings.cancellation_policy || 'Cancellation policy will be updated shortly.';
+  }
+
+  // Format line breaks and headers nicely
+  const formattedHtml = content.split('\n\n').map(para => {
+    const lines = para.split('\n').map(l => {
+      const trimmed = l.trim();
+      if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+        return `<li style="margin-bottom:0.4rem;display:flex;align-items:flex-start;gap:0.5rem"><span style="color:var(--accent);font-weight:bold">•</span><span>${esc(trimmed.substring(2))}</span></li>`;
+      }
+      if (/^\d+\./.test(trimmed)) {
+        return `<h4 style="font-family:var(--font-heading);font-size:1.05rem;color:var(--primary-dark);margin:1.2rem 0 0.5rem 0">${esc(trimmed)}</h4>`;
+      }
+      return `<p style="margin-bottom:0.6rem;color:var(--text-main);line-height:1.6">${esc(trimmed)}</p>`;
+    }).join('');
+    return lines.includes('<li') ? `<ul style="list-style:none;padding:0;margin:0.5rem 0 1rem 0">${lines}</ul>` : lines;
+  }).join('');
+
+  body.innerHTML = `
+    <div style="margin-bottom:1.5rem;border-bottom:1px solid var(--border-light);padding-bottom:1rem">
+      <span class="badge-icon" style="font-size:1.8rem">📜</span>
+      <h2 style="font-family:var(--font-heading);font-size:1.8rem;font-weight:800;color:var(--primary-dark);margin-top:0.4rem">${esc(title)}</h2>
+      <p style="font-size:0.85rem;color:var(--text-muted)">Pahadnama Trails &bull; Official Guidelines &amp; Rules</p>
+    </div>
+    <div class="policy-body-content" style="max-height:60vh;overflow-y:auto;padding-right:0.5rem;font-size:0.92rem">
+      ${formattedHtml}
+    </div>
+    <div style="margin-top:1.8rem;display:flex;justify-content:flex-end">
+      <button type="button" class="btn btn-primary" onclick="closePolicyModal()">I Understand &amp; Agree</button>
+    </div>
+  `;
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePolicyModal() {
+  const modal = document.getElementById('policyModal');
+  if (modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
 // Toggle FAQ Accordion
 function toggleFaq(button) {
   const item = button.closest('.accordion-item');
@@ -1493,6 +1645,7 @@ window.addEventListener('keydown', e => {
     closeFeedbackModal();
     closeCustomTrekModal();
     closeBookingModal();
+    closePolicyModal();
   }
 });
 
@@ -1503,6 +1656,7 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
       closeFeedbackModal();
       closeCustomTrekModal();
       closeBookingModal();
+      closePolicyModal();
     }
   });
 });

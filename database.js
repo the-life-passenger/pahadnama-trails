@@ -180,7 +180,36 @@ const defaultSettings = {
   announcement_enabled: 'true',
   announcement_text: 'Monsoon & Post-Monsoon Sahyadri Batches: Booking open for upcoming Saturday & Sunday trails!',
   announcement_link_text: 'Groups of 6+? Custom Trek →',
-  announcement_link_url: '#custom-trek'
+  announcement_link_url: '#custom-trek',
+  hero_bg_image: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg',
+  hero_bg_opacity: '70',
+  terms_conditions: `1. Trek Participation & Safety:
+- All participants must follow the instructions of the certified trek leaders at all times during the expedition.
+- Trekkers are responsible for their personal safety and must declare any medical conditions prior to the trek.
+- Strictly NO alcohol, narcotics, smoking, or littering allowed on any Sahyadri trails. Preserve nature.
+
+2. Equipment & Fitness:
+- Good grip trekking shoes and adequate drinking water (at least 2-3 liters) are mandatory.
+- Pahadnama Trails reserves the right to alter or cancel routes in case of severe thunderstorms, cloudbursts, or landslides for participant safety.
+
+3. Photography & Media:
+- Photographs and drone/video footage captured during public batches may be featured on our official Instagram and website to inspire fellow trekkers.`,
+  privacy_policy: `1. Information We Collect:
+- When you reserve a trail, we collect your name, age, phone number, and pickup location solely for batch coordination and forest department permissions.
+
+2. Data Security:
+- We never sell, rent, or trade your personal information to third-party advertisers or telemarketers.
+- Payment transactions are processed directly via secure payment gateways (Razorpay) or direct UPI.
+
+3. Contacting You:
+- Your mobile number is used strictly to send WhatsApp booking confirmations, pickup timing updates, and post-trek trail memories.`,
+  cancellation_policy: `1. Cancellation by Participant:
+- More than 7 days prior to trek departure: 90% refund or 100% credit voucher for future treks.
+- Between 3 to 6 days prior to departure: 50% refund or 75% credit voucher.
+- Less than 48 hours or No-Show: No refund, as transport, guides, and base village meals are booked in advance.
+
+2. Unforeseen Weather or Force Majeure:
+- If a trek is suspended due to natural calamities, landslides, heavy floods, or government restrictions, your entire amount will be converted into a flexible voucher valid for any upcoming trail within 6 months.`
 };
 
 const setStmt = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');

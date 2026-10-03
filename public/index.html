@@ -110,7 +110,7 @@
     <!-- Hero Section -->
     <section class="hero-section" id="home">
       <div class="hero-backdrop">
-        <div class="hero-image-layer"></div>
+        <div class="hero-image-layer" id="heroImageLayer"></div>
         <div class="hero-overlay"></div>
       </div>
 
@@ -550,9 +550,26 @@
 
     <div class="container footer-bottom">
       <p>© 2026 Pahadnama Trails. Chase Summits, Collect Stories. All rights reserved.</p>
+      <div class="footer-legal-links">
+        <a href="javascript:void(0)" onclick="openPolicyModal('terms')">Terms &amp; Conditions</a>
+        <span class="legal-dot">•</span>
+        <a href="javascript:void(0)" onclick="openPolicyModal('privacy')">Privacy Policy</a>
+        <span class="legal-dot">•</span>
+        <a href="javascript:void(0)" onclick="openPolicyModal('cancellation')">Cancellation &amp; Refund Policy</a>
+      </div>
       <p class="footer-mountain-note">Crafted for genuine Sahyadri mountain lovers.</p>
     </div>
   </footer>
+
+  <!-- LEGAL POLICIES & TERMS MODAL -->
+  <div class="modal-overlay" id="policyModal" aria-hidden="true">
+    <div class="modal-dialog modal-large">
+      <button class="modal-close" onclick="closePolicyModal()" aria-label="Close Policy Modal">&times;</button>
+      <div class="modal-body" id="policyModalBody" style="padding:2.2rem">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
 
   <!-- DEDICATED TREK DETAILS MODAL -->
   <div class="modal-overlay" id="trekModal" aria-hidden="true">

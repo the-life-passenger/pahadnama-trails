@@ -1090,6 +1090,29 @@ app.delete('/api/admin/settings/background', requireAdmin, (req, res) => {
   }
 });
 
+// Settings management: Upload Hero Section Background Image
+app.post('/api/admin/settings/hero-background', requireAdmin, upload.single('hero_image'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No hero background image uploaded' });
+    const heroUrl = `/uploads/${req.file.filename}`;
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_image', heroUrl);
+    res.json({ ok: true, hero_bg_image: heroUrl, message: 'Hero background image uploaded successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to upload hero background image: ' + err.message });
+  }
+});
+
+// Settings management: Remove / Reset Hero Section Background Image
+app.delete('/api/admin/settings/hero-background', requireAdmin, (req, res) => {
+  try {
+    const defaultHero = 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg';
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_image', defaultHero);
+    res.json({ ok: true, hero_bg_image: defaultHero, message: 'Hero background reset to default' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to reset hero background: ' + err.message });
+  }
+});
+
 // Payments management: Test Razorpay API credentials live
 app.post('/api/admin/payments/test-keys', requireAdmin, async (req, res) => {
   try {

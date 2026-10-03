@@ -1343,7 +1343,7 @@ async function renderSettingsTab() {
                 <button type="button" onclick="setPresetColor('#f8fafc')" title="Soft Pearl" style="background:#f8fafc;border:1.5px solid #cbd5e1;width:28px;height:28px;border-radius:6px;cursor:pointer"></button>
                 <button type="button" onclick="setPresetColor('#fffbeb')" title="Warm Cream" style="background:#fffbeb;border:1.5px solid #cbd5e1;width:28px;height:28px;border-radius:6px;cursor:pointer"></button>
                 <button type="button" onclick="setPresetColor('#f1f5f9')" title="Cool Mist" style="background:#f1f5f9;border:1.5px solid #cbd5e1;width:28px;height:28px;border-radius:6px;cursor:pointer"></button>
-                <button type="button" onclick="setPresetColor('#0f172a')" title="Dark Mode" style="background:#0f172a;border:1.5px solid #cbd5e1;width:28px;height:28px;border-radius:6px;cursor:pointer"></button>
+                <button type="button" onclick="setPresetColor('#111412')" title="Shady Black" style="background:#111412;border:1.5px solid #cbd5e1;width:28px;height:28px;border-radius:6px;cursor:pointer"></button>
               </div>
             </div>
             <small>Default is pure clean white (<code>#ffffff</code>). You can pick any custom color.</small>
@@ -1445,6 +1445,77 @@ async function renderSettingsTab() {
         </form>
       </div>
 
+      <!-- HERO SECTION MOUNTAIN BACKGROUND PHOTO SETTINGS -->
+      <div class="admin-panel" style="max-width:800px;margin-bottom:2rem">
+        <div class="admin-panel-head">
+          <div>
+            <h3>🌄 Hero Section Mountain Background Photo (Homepage Banner)</h3>
+            <small style="color:var(--admin-text-muted)">Change the big mountain photo shown on the homepage header (behind the Maharashtra Sahyadri Treks title).</small>
+          </div>
+        </div>
+
+        <div style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.5rem">
+          <label style="font-weight:700;display:block;margin-bottom:0.5rem">Current Active Hero Background Photo</label>
+          <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+            <img src="${esc(s.hero_bg_image || 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg')}" alt="Hero Background Preview" style="width:220px;height:120px;object-fit:cover;border-radius:8px;border:1.5px solid var(--admin-border);box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+            <div style="flex:1;min-width:220px">
+              <code style="display:block;font-size:0.8rem;word-break:break-all;color:var(--admin-accent);margin-bottom:0.6rem">${esc(s.hero_bg_image || 'Default Sahyadri Wallpaper')}</code>
+              <button type="button" class="btn-admin-danger btn-admin-sm" onclick="handleRemoveHeroBgImage()">🔄 Reset to Default Photo</button>
+            </div>
+          </div>
+        </div>
+
+        <form onsubmit="handleUploadHeroBgImage(event)" style="background:#fff;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.25rem">
+          <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:0.4rem">Option A: Upload New Hero Photo from Device</h4>
+          <p style="font-size:0.82rem;color:var(--admin-text-muted);margin-bottom:0.85rem">Upload a high-resolution landscape photo of Sahyadri mountains (.jpg, .png, .webp).</p>
+          <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+            <input type="file" name="hero_image" accept="image/*" required style="font-size:0.9rem">
+            <button type="submit" class="btn-admin-primary">⬆️ Upload &amp; Apply Hero Photo</button>
+          </div>
+        </form>
+
+        <form onsubmit="handleSaveHeroBgUrl(event)" style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border)">
+          <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:0.4rem">Option B: Set Direct Image URL</h4>
+          <div class="admin-form-group">
+            <input type="text" name="hero_bg_image" id="heroBgImageUrlInput" value="${esc(s.hero_bg_image || '')}" placeholder="https://images.unsplash.com/... or /uploads/...">
+            <small>Paste any direct image link.</small>
+          </div>
+          <button type="submit" class="btn-admin-primary">Save Hero Image Link</button>
+        </form>
+      </div>
+
+      <!-- LEGAL POLICIES & TERMS SETTINGS -->
+      <div class="admin-panel" style="max-width:800px;margin-bottom:2rem">
+        <div class="admin-panel-head">
+          <div>
+            <h3>📜 Website Policies &amp; Terms of Service</h3>
+            <small style="color:var(--admin-text-muted)">Edit your Terms &amp; Conditions, Privacy Policy, and Cancellation Rules displayed to users in the footer.</small>
+          </div>
+        </div>
+
+        <form onsubmit="handleSavePolicySettings(event)">
+          <div class="admin-form-group">
+            <label>1. Terms &amp; Conditions</label>
+            <textarea name="terms_conditions" rows="6" style="font-family:inherit;font-size:0.88rem;line-height:1.5">${esc(s.terms_conditions || '')}</textarea>
+            <small>Trek participation guidelines, safety requirements, and code of conduct.</small>
+          </div>
+
+          <div class="admin-form-group">
+            <label>2. Privacy Policy</label>
+            <textarea name="privacy_policy" rows="5" style="font-family:inherit;font-size:0.88rem;line-height:1.5">${esc(s.privacy_policy || '')}</textarea>
+            <small>How customer contact numbers and booking data are protected.</small>
+          </div>
+
+          <div class="admin-form-group">
+            <label>3. Cancellation &amp; Refund Policy</label>
+            <textarea name="cancellation_policy" rows="5" style="font-family:inherit;font-size:0.88rem;line-height:1.5">${esc(s.cancellation_policy || '')}</textarea>
+            <small>Refund percentages based on days prior to trek and bad weather guidelines.</small>
+          </div>
+
+          <button type="submit" class="btn-admin-primary" style="margin-top:0.5rem">Save Policies &amp; Terms</button>
+        </form>
+      </div>
+
       <div class="admin-panel" style="max-width:800px">
         <div class="admin-panel-head">
           <div>
@@ -1526,7 +1597,7 @@ async function renderSettingsTab() {
 
         <!-- Testing Cheat Sheet -->
         <div class="rzp-cheat-sheet">
-          <div style="font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.4rem;color:#0f172a">
+          <div style="font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.4rem;color:#111412">
             <span>🧪</span> Razorpay Test Credentials (Website Pe Test Karne Ke Liye):
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:0.6rem">
@@ -1843,6 +1914,64 @@ async function handleSaveAnnouncementSettings(e) {
   } catch (err) {
     alert('Failed to save announcement settings: ' + err.message);
   }
+}
+
+async function handleUploadHeroBgImage(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  try {
+    const res = await fetch('/api/admin/settings/hero-background', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    showToast('Hero background photo updated live!');
+    renderSettingsTab();
+  } catch (err) { alert('Upload failed: ' + err.message); }
+}
+
+async function handleRemoveHeroBgImage() {
+  if (!confirm('Reset hero background photo to default Sahyadri wallpaper?')) return;
+  try {
+    const res = await adminApi('/api/admin/settings/hero-background', { method: 'DELETE' });
+    showToast('Hero background reset to default');
+    renderSettingsTab();
+  } catch (err) { alert('Reset failed: ' + err.message); }
+}
+
+async function handleSaveHeroBgUrl(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const heroUrl = formData.get('hero_bg_image')?.trim();
+  try {
+    await adminApi('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hero_bg_image: heroUrl })
+    });
+    showToast('Hero background image URL saved!');
+    renderSettingsTab();
+  } catch (err) { alert('Save failed: ' + err.message); }
+}
+
+async function handleSavePolicySettings(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const body = Object.fromEntries(formData.entries());
+  try {
+    await adminApi('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    showToast('Policies, Terms & Conditions updated successfully!');
+    renderSettingsTab();
+  } catch (err) { alert('Failed to save policies: ' + err.message); }
 }
 
 async function handleUploadBgImage(e) {
