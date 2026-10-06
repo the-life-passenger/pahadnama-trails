@@ -159,14 +159,16 @@ async function loadSettings() {
       }
     }
 
-    // Dynamic Hero Section Background
+    // Dynamic Hero Section Background & Transparency / Opacity
     const heroLayer = document.getElementById('heroImageLayer');
-    if (heroLayer && siteSettings.hero_bg_image) {
-      heroLayer.style.backgroundImage = `url('${siteSettings.hero_bg_image}')`;
-      if (siteSettings.hero_bg_opacity) {
+    if (heroLayer) {
+      if (siteSettings.hero_bg_image) {
+        heroLayer.style.backgroundImage = `url('${siteSettings.hero_bg_image}')`;
+      }
+      if (siteSettings.hero_bg_opacity !== undefined && siteSettings.hero_bg_opacity !== null && siteSettings.hero_bg_opacity !== '') {
         const opVal = parseInt(siteSettings.hero_bg_opacity, 10);
         if (!isNaN(opVal)) {
-          heroLayer.style.opacity = (Math.min(100, Math.max(10, opVal)) / 100).toString();
+          heroLayer.style.opacity = (Math.min(100, Math.max(0, opVal)) / 100).toString();
         }
       }
     }

@@ -1549,13 +1549,48 @@ async function renderSettingsTab() {
         <div style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.5rem">
           <label style="font-weight:700;display:block;margin-bottom:0.5rem">Current Active Hero Background Photo</label>
           <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
-            <img src="${esc(s.hero_bg_image || 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg')}" alt="Hero Background Preview" style="width:220px;height:120px;object-fit:cover;border-radius:8px;border:1.5px solid var(--admin-border);box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+            <div style="position:relative;background:#0f172a;border-radius:8px;overflow:hidden;border:1.5px solid var(--admin-border);box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+              <img id="heroPreviewImg" src="${esc(s.hero_bg_image || 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg')}" alt="Hero Background Preview" style="width:220px;height:120px;object-fit:cover;display:block;opacity:${(parseInt(s.hero_bg_opacity || '70', 10) / 100).toFixed(2)};transition:opacity 0.2s ease">
+            </div>
             <div style="flex:1;min-width:220px">
-              <code style="display:block;font-size:0.8rem;word-break:break-all;color:var(--admin-accent);margin-bottom:0.6rem">${esc(s.hero_bg_image || 'Default Sahyadri Wallpaper')}</code>
+              <code style="display:block;font-size:0.8rem;word-break:break-all;color:var(--admin-accent);margin-bottom:0.4rem">${esc(s.hero_bg_image || 'Default Sahyadri Wallpaper')}</code>
+              <div style="font-size:0.82rem;color:var(--admin-text-muted);margin-bottom:0.6rem">Current Visibility / Opacity: <strong id="heroCurrentOpLabel" style="color:var(--admin-accent)">${esc(s.hero_bg_opacity || '70')}%</strong></div>
               <button type="button" class="btn-admin-danger btn-admin-sm" onclick="handleRemoveHeroBgImage()">🔄 Reset to Default Photo</button>
             </div>
           </div>
         </div>
+
+        <!-- HERO PHOTO TRANSPARENCY / OPACITY SLIDER -->
+        <form onsubmit="handleSaveHeroOpacity(event)" style="background:#fff;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.25rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
+            <h4 style="font-size:0.95rem;font-weight:700;display:flex;align-items:center;gap:0.4rem">
+              <span>🎚️</span> Hero Photo Transparency / Visibility:
+              <strong id="heroBgOpacityVal" style="color:var(--admin-accent);font-size:1.15rem">${esc(s.hero_bg_opacity || '70')}%</strong>
+            </h4>
+          </div>
+          <p style="font-size:0.82rem;color:var(--admin-text-muted);margin-bottom:0.85rem">
+            Adjust how transparent or prominent the mountain background photo appears on your homepage banner (0% = invisible/dark, 100% = full bright photo).
+          </p>
+
+          <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem">
+            <input type="range" name="hero_bg_opacity" id="heroBgOpacityRange" min="0" max="100" value="${esc(s.hero_bg_opacity || '70')}" 
+              style="flex:1;cursor:pointer;height:8px;border-radius:4px" 
+              oninput="syncHeroOpacityPreview(this.value)">
+            <span style="font-family:monospace;font-weight:800;font-size:0.95rem;width:48px;text-align:right" id="heroOpacityInputBox">${esc(s.hero_bg_opacity || '70')}%</span>
+          </div>
+
+          <div style="display:flex;gap:0.45rem;align-items:center;flex-wrap:wrap;margin-bottom:1.1rem">
+            <span style="font-size:0.78rem;color:var(--admin-text-muted)">Presets:</span>
+            <button type="button" class="btn-admin-sm btn-admin-outline" onclick="setHeroOpacityPreset(25)">25% (Subtle Dark)</button>
+            <button type="button" class="btn-admin-sm btn-admin-outline" onclick="setHeroOpacityPreset(50)">50% (Balanced)</button>
+            <button type="button" class="btn-admin-sm btn-admin-outline" onclick="setHeroOpacityPreset(70)">70% (Standard Vivid)</button>
+            <button type="button" class="btn-admin-sm btn-admin-outline" onclick="setHeroOpacityPreset(90)">90% (Ultra Clear)</button>
+          </div>
+
+          <button type="submit" class="btn-admin-primary">
+            <span>💾 Save Hero Transparency</span>
+          </button>
+        </form>
 
         <form onsubmit="handleUploadHeroBgImage(event)" style="background:#fff;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.25rem">
           <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:0.4rem">Option A: Upload New Hero Photo from Device</h4>
@@ -1977,6 +2012,43 @@ async function handleSelectTheme(themeKey) {
     renderSettingsTab();
   } catch (err) {
     alert('Failed to update theme: ' + err.message);
+  }
+}
+
+function syncHeroOpacityPreview(val) {
+  const label = document.getElementById('heroBgOpacityVal');
+  const box = document.getElementById('heroOpacityInputBox');
+  const currentOpLabel = document.getElementById('heroCurrentOpLabel');
+  const img = document.getElementById('heroPreviewImg');
+  if (label) label.textContent = val + '%';
+  if (box) box.textContent = val + '%';
+  if (currentOpLabel) currentOpLabel.textContent = val + '%';
+  if (img) img.style.opacity = (Math.max(0, Math.min(100, parseInt(val, 10))) / 100).toFixed(2);
+}
+
+function setHeroOpacityPreset(val) {
+  const slider = document.getElementById('heroBgOpacityRange');
+  if (slider) {
+    slider.value = val;
+    syncHeroOpacityPreview(val);
+  }
+}
+
+async function handleSaveHeroOpacity(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const opacityVal = formData.get('hero_bg_opacity')?.trim() || '70';
+  try {
+    await adminApi('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hero_bg_opacity: opacityVal })
+    });
+    showToast('Hero background transparency updated to ' + opacityVal + '%!');
+    renderSettingsTab();
+  } catch (err) {
+    alert('Failed to save transparency: ' + err.message);
   }
 }
 

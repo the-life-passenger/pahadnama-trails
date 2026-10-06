@@ -383,7 +383,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 /* Hero */
 .hero-section { position: relative; min-height: 88vh; display: flex; align-items: center; color: #ffffff; padding: 5rem 0 4rem; overflow: hidden; background-color: var(--primary-dark); }
 .hero-backdrop { position: absolute; inset: 0; z-index: 1; }
-.hero-image-layer { position: absolute; inset: 0; background-image: url('https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg'); background-size: cover; background-position: center 30%; filter: brightness(0.65) saturate(1.1); transition: background-image 0.6s ease-in-out; }
+.hero-image-layer { position: absolute; inset: 0; background-image: url('https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg'); background-size: cover; background-position: center 30%; filter: brightness(0.65) saturate(1.1); transition: background-image 0.6s ease-in-out, opacity 0.4s ease; }
 .hero-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(17, 20, 18, 0.82) 0%, rgba(17, 20, 18, 0.52) 45%, rgba(12, 15, 13, 0.96) 100%); }
 .hero-content { position: relative; z-index: 2; max-width: 860px; }
 .hero-badge { display: inline-flex; align-items: center; gap: 0.6rem; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px); padding: 0.4rem 1rem; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 1.5rem; }
