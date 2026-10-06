@@ -12,13 +12,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Instant Theme & Background Initialization (Eliminates theme flash glitch on refresh) -->
+  <!-- Instant Theme & Background Initialization -->
   <script>
     (function() {
       try {
-        var t = localStorage.getItem('pahadnama_site_theme');
+        var s = window.__INITIAL_SETTINGS__;
+        var t = (s && s.site_theme) ? s.site_theme : localStorage.getItem('pahadnama_site_theme');
         if (t) document.documentElement.setAttribute('data-theme', t);
-        var bg = localStorage.getItem('pahadnama_bg_color');
+        var bg = (s && s.site_bg_color) ? s.site_bg_color : localStorage.getItem('pahadnama_bg_color');
         if (bg) {
           document.documentElement.style.setProperty('--bg-page', bg);
           document.documentElement.style.backgroundColor = bg;

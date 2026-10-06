@@ -32,32 +32,79 @@ function getSettings() {
   return obj;
 }
 
-// Server-side renderer for index.html with active theme injected into <html> tag to eliminate theme flash / FOUC
+// Server-side renderer for index.html with active theme, background, and announcement bar injected directly to eliminate defaults / flashes / FOUC
 function renderIndexHtml(req, res) {
   try {
     const settings = getSettings();
+    delete settings.razorpay_key_secret;
+
     const activeTheme = settings.site_theme || 'sahyadri-sanchara';
-    const activeBgColor = settings.site_bg_color;
+    const activeBgColor = settings.site_bg_color || '#ffffff';
+    const activeBgImage = settings.site_bg_image || '';
+    const activeBgOpacity = isNaN(parseInt(settings.site_bg_opacity, 10)) ? 15 : parseInt(settings.site_bg_opacity, 10);
+    const isAnnEnabled = settings.announcement_enabled !== 'false' && settings.announcement_enabled !== '0';
+    const annText = settings.announcement_text || 'Monsoon & Post-Monsoon Sahyadri Batches: Booking open for upcoming Saturday & Sunday trails!';
+    const annLinkText = settings.announcement_link_text || 'Groups of 6+? Custom Trek →';
+    const annLinkUrl = settings.announcement_link_url || '#custom-trek';
+    const brandLogo = settings.brand_logo || '';
 
     const htmlPath = path.join(PUBLIC_DIR, 'index.html');
     let html = fs.readFileSync(htmlPath, 'utf8');
 
-    // Inject data-theme and background inline styles directly into <html>
-    let htmlAttrs = `data-theme="${activeTheme}"`;
-    if (activeBgColor && activeBgColor !== '#ffffff' && activeBgColor !== '#070a0e') {
-      htmlAttrs += ` style="background-color: ${activeBgColor};"`;
-    }
+    // 1. Inject data-theme and background inline styles directly into <html>
+    const htmlAttrs = `data-theme="${activeTheme}" style="background-color: ${activeBgColor}; --bg-page: ${activeBgColor};"`;
     html = html.replace(/<html(?:\s+lang="en")?[^>]*>/i, `<html lang="en" ${htmlAttrs}>`);
 
-    // Inject sync script right inside <head> to update localStorage instantly
-    const syncScript = `<script>try{localStorage.setItem('pahadnama_site_theme',${JSON.stringify(activeTheme)});${activeBgColor ? `localStorage.setItem('pahadnama_bg_color',${JSON.stringify(activeBgColor)});` : ''}}catch(e){}</script>`;
-    html = html.replace('<head>', `<head>\n  ${syncScript}`);
+    // 2. Inject window.__INITIAL_SETTINGS__ and localStorage sync right inside <head>
+    const settingsJson = JSON.stringify(settings);
+    const headInjection = `<script>
+  window.__INITIAL_SETTINGS__ = ${settingsJson};
+  try {
+    localStorage.setItem('pahadnama_site_theme', ${JSON.stringify(activeTheme)});
+    localStorage.setItem('pahadnama_bg_color', ${JSON.stringify(activeBgColor)});
+  } catch (e) {}
+</script>`;
+    html = html.replace('<head>', `<head>\n  ${headInjection}`);
+
+    // 3. Inject body background style
+    html = html.replace(/<body([^>]*)>/i, `<body$1 style="background-color: ${activeBgColor};">`);
+
+    // 4. Inject Dynamic Background Layer (#siteCustomBgLayer) style
+    if (activeBgImage && activeBgImage.trim()) {
+      const opacity = (Math.min(100, Math.max(0, activeBgOpacity)) / 100).toFixed(2);
+      const bgLayerStyle = `style="background-image: url('${activeBgImage}'); opacity: ${opacity}; display: block;"`;
+      html = html.replace(/<div id="siteCustomBgLayer"[^>]*><\/div>/i, `<div id="siteCustomBgLayer" aria-hidden="true" ${bgLayerStyle}></div>`);
+    } else {
+      const bgLayerStyle = `style="background-image: none; opacity: 0; display: none;"`;
+      html = html.replace(/<div id="siteCustomBgLayer"[^>]*><\/div>/i, `<div id="siteCustomBgLayer" aria-hidden="true" ${bgLayerStyle}></div>`);
+    }
+
+    // 5. Inject Top Announcement Bar visibility and content
+    if (!isAnnEnabled) {
+      // Hide announcement bar completely in initial HTML
+      html = html.replace(/<aside class="announcement-bar" id="announcementBar"[^>]*>/i, `<aside class="announcement-bar" id="announcementBar" style="display: none;" aria-label="Upcoming batches">`);
+    } else {
+      html = html.replace(/<aside class="announcement-bar" id="announcementBar"[^>]*>/i, `<aside class="announcement-bar" id="announcementBar" aria-label="Upcoming batches">`);
+      if (annText) {
+        html = html.replace(/<span class="announcement-text" id="announcementText">[\s\S]*?<\/span>/i, `<span class="announcement-text" id="announcementText">${annText}</span>`);
+      }
+      if (annLinkText && annLinkText.trim()) {
+        html = html.replace(/<a [^>]*id="announcementLink"[^>]*>[\s\S]*?<\/a>/i, `<a href="${annLinkUrl}" class="announcement-link" id="announcementLink">${annLinkText}</a>`);
+      } else {
+        html = html.replace(/<a [^>]*id="announcementLink"[^>]*>[\s\S]*?<\/a>/i, `<a href="${annLinkUrl}" class="announcement-link" id="announcementLink" style="display:none"></a>`);
+      }
+    }
+
+    // 6. Inject brand logo if updated
+    if (brandLogo) {
+      html = html.replace(/src="\/brand\/pahadnama-logo\.png"/g, `src="${brandLogo}"`);
+    }
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     return res.send(html);
   } catch (err) {
-    console.error('Error rendering index.html with theme:', err);
+    console.error('Error rendering index.html with theme & settings:', err);
     return res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
   }
 }

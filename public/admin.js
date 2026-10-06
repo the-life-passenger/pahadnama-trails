@@ -1995,6 +1995,11 @@ async function handleSaveAllSettings(e) {
       body: JSON.stringify(combined)
     });
 
+    try {
+      localStorage.setItem('pahadnama_site_theme', theme);
+      if (combined.site_bg_color) localStorage.setItem('pahadnama_bg_color', combined.site_bg_color);
+    } catch (e) {}
+
     // Update status badges in-place
     const rzpBadge = document.getElementById('razorpayStatusBadge');
     if (rzpBadge) {
@@ -2271,6 +2276,8 @@ async function handleSelectTheme(themeKey) {
       body: JSON.stringify({ site_theme: themeKey })
     });
 
+    try { localStorage.setItem('pahadnama_site_theme', themeKey); } catch (e) {}
+
     const activeBadge = document.getElementById('activeThemeHeaderBadge');
     if (activeBadge) activeBadge.textContent = 'Active: ' + formatThemeName(themeKey);
 
@@ -2380,6 +2387,9 @@ async function handleSaveBgSettings(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
+    if (body.site_bg_color) {
+      try { localStorage.setItem('pahadnama_bg_color', body.site_bg_color); } catch (e) {}
+    }
     showToast('Theme & background appearance saved successfully!');
   } catch (err) { alert('Failed to save background settings: ' + err.message); }
   finally { if (btn) { btn.disabled = false; btn.innerHTML = oldText; } }

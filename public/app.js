@@ -50,6 +50,14 @@ async function api(url, options = {}) {
 async function initApp() {
   setupNav();
   setupFilters();
+
+  // Instant frame-1 bootstrap from server-rendered settings
+  if (window.__INITIAL_SETTINGS__ && typeof window.__INITIAL_SETTINGS__ === 'object') {
+    siteSettings = window.__INITIAL_SETTINGS__;
+    applyTheme(siteSettings.site_theme || 'sahyadri-sanchara');
+    applyDynamicBackground(siteSettings);
+  }
+
   await loadSettings();
   await loadTreks();
   await loadFeedback();
@@ -111,7 +119,11 @@ function applyTheme(themeName) {
 // Load public settings
 async function loadSettings() {
   try {
-    siteSettings = await api('/api/settings');
+    if (window.__INITIAL_SETTINGS__ && typeof window.__INITIAL_SETTINGS__ === 'object') {
+      siteSettings = window.__INITIAL_SETTINGS__;
+    } else {
+      siteSettings = await api('/api/settings');
+    }
 
     // Apply travel brand theme preset
     applyTheme(siteSettings.site_theme || 'sahyadri-sanchara');
