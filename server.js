@@ -1012,14 +1012,18 @@ app.put('/api/admin/settings', requireAdmin, (req, res) => {
     const entries = Object.entries(req.body);
     const stmt = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
     for (const [k, v] of entries) {
-      if (typeof v === 'string') {
-        const cleanVal = (k === 'razorpay_key_id' || k === 'razorpay_key_secret' || k === 'whatsapp_number' || k === 'upi_id') ? v.trim() : v;
+      if (v !== undefined && v !== null) {
+        let cleanVal = String(v);
+        if (k === 'razorpay_key_id' || k === 'razorpay_key_secret' || k === 'whatsapp_number' || k === 'upi_id') {
+          cleanVal = cleanVal.trim();
+        }
         stmt.run(k, cleanVal);
       }
     }
     res.json({ ok: true, settings: getSettings() });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update settings' });
+    console.error('Error updating settings:', err);
+    res.status(500).json({ error: 'Failed to update settings: ' + err.message });
   }
 });
 

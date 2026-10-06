@@ -1323,6 +1323,24 @@ async function renderSettingsTab() {
     const s = await adminApi('/api/admin/settings');
     const activeTheme = s.site_theme || 'sahyadri-sanchara';
     content.innerHTML = `
+      <!-- TOP MASTER ACTION BAR -->
+      <div class="settings-top-bar" style="max-width:800px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;background:var(--admin-bg-subtle,#f8fafc);padding:1.15rem 1.4rem;border-radius:12px;border:1.5px solid var(--admin-border,#e2e8f0);margin-bottom:1.5rem;box-shadow:0 2px 6px rgba(0,0,0,0.03)">
+        <div>
+          <h3 style="margin:0;font-size:1.15rem;display:flex;align-items:center;gap:0.5rem">
+            <span>⚙️</span> Website &amp; System Settings
+          </h3>
+          <small style="color:var(--admin-text-muted,#64748b)">Theme, custom backgrounds, hero banner, announcement, policies, payment gateway &amp; brand info.</small>
+        </div>
+        <div>
+          <button type="button" class="btn-admin-primary" id="btnSaveAllSettingsTop" onclick="handleSaveAllSettings(event)" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.65rem 1.35rem;font-weight:700;font-size:0.92rem;border-radius:8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span>💾 Save All Settings</span>
+          </button>
+        </div>
+      </div>
+
+      <input type="hidden" id="activeSiteThemeInput" value="${esc(activeTheme)}">
+
       <!-- TRAVEL BRAND THEMES SELECTOR (1-CLICK SWITCHER) -->
       <div class="admin-panel" style="max-width:800px;margin-bottom:2rem">
         <div class="admin-panel-head">
@@ -1330,14 +1348,14 @@ async function renderSettingsTab() {
             <h3>🎨 Travel Website Themes &amp; Brand Styling</h3>
             <small style="color:var(--admin-text-muted)">Choose from 4 professionally curated travel website design themes inspired by top travel &amp; trek platforms. 1-click activate.</small>
           </div>
-          <span style="font-size:0.75rem;padding:0.3rem 0.85rem;border-radius:999px;background:var(--admin-accent);color:#ffffff;font-weight:700">
+          <span id="activeThemeHeaderBadge" style="font-size:0.75rem;padding:0.3rem 0.85rem;border-radius:999px;background:var(--admin-accent);color:#ffffff;font-weight:700">
             Active: ${formatThemeName(activeTheme)}
           </span>
         </div>
 
         <div class="theme-presets-grid">
           <!-- Theme 1 -->
-          <div class="theme-preset-card ${activeTheme === 'sahyadri-sanchara' ? 'active' : ''}" onclick="handleSelectTheme('sahyadri-sanchara')">
+          <div class="theme-preset-card ${activeTheme === 'sahyadri-sanchara' ? 'active' : ''}" data-theme="sahyadri-sanchara" onclick="handleSelectTheme('sahyadri-sanchara')">
             <div class="theme-card-top">
               <span class="theme-ref-badge">⭐ Ref: sahyadrisanchara.com</span>
               ${activeTheme === 'sahyadri-sanchara' ? '<span class="theme-badge-applied">✓ ACTIVE</span>' : ''}
@@ -1356,7 +1374,7 @@ async function renderSettingsTab() {
           </div>
 
           <!-- Theme 2 -->
-          <div class="theme-preset-card ${activeTheme === 'indiahikes-alpine' ? 'active' : ''}" onclick="handleSelectTheme('indiahikes-alpine')">
+          <div class="theme-preset-card ${activeTheme === 'indiahikes-alpine' ? 'active' : ''}" data-theme="indiahikes-alpine" onclick="handleSelectTheme('indiahikes-alpine')">
             <div class="theme-card-top">
               <span class="theme-ref-badge">🏔️ Ref: indiahikes.com</span>
               ${activeTheme === 'indiahikes-alpine' ? '<span class="theme-badge-applied">✓ ACTIVE</span>' : ''}
@@ -1375,7 +1393,7 @@ async function renderSettingsTab() {
           </div>
 
           <!-- Theme 3 -->
-          <div class="theme-preset-card ${activeTheme === 'rainforest-emerald' ? 'active' : ''}" onclick="handleSelectTheme('rainforest-emerald')">
+          <div class="theme-preset-card ${activeTheme === 'rainforest-emerald' ? 'active' : ''}" data-theme="rainforest-emerald" onclick="handleSelectTheme('rainforest-emerald')">
             <div class="theme-card-top">
               <span class="theme-ref-badge">🌿 Ref: trekthehimalayas.com</span>
               ${activeTheme === 'rainforest-emerald' ? '<span class="theme-badge-applied">✓ ACTIVE</span>' : ''}
@@ -1394,7 +1412,7 @@ async function renderSettingsTab() {
           </div>
 
           <!-- Theme 4 -->
-          <div class="theme-preset-card ${activeTheme === 'zostel-nomad' ? 'active' : ''}" onclick="handleSelectTheme('zostel-nomad')">
+          <div class="theme-preset-card ${activeTheme === 'zostel-nomad' ? 'active' : ''}" data-theme="zostel-nomad" onclick="handleSelectTheme('zostel-nomad')">
             <div class="theme-card-top">
               <span class="theme-ref-badge">🎒 Ref: zostel.com &bull; tripoto</span>
               ${activeTheme === 'zostel-nomad' ? '<span class="theme-badge-applied">✓ ACTIVE</span>' : ''}
@@ -1423,7 +1441,7 @@ async function renderSettingsTab() {
           </div>
         </div>
 
-        <form onsubmit="handleSaveBgSettings(event)">
+        <form id="settingsBgForm" onsubmit="handleSaveBgSettings(event)">
           <div class="admin-form-group">
             <label>1. Background Color</label>
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
@@ -1461,7 +1479,7 @@ async function renderSettingsTab() {
             <small>Enter a direct image URL, or upload a photo file below.</small>
           </div>
 
-          <button type="submit" class="btn-admin-primary" style="margin-top:0.5rem">Save Color &amp; Visibility Settings</button>
+          <button type="submit" class="btn-admin-primary" style="margin-top:0.5rem">💾 Save Background Settings</button>
         </form>
 
         <hr style="margin:2rem 0;border:none;border-top:1px solid var(--admin-border)">
@@ -1473,24 +1491,26 @@ async function renderSettingsTab() {
           <button type="submit" class="btn-admin-primary">Upload &amp; Apply Photo</button>
         </form>
 
-        ${s.site_bg_image ? `
-          <div style="margin-top:1.2rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;background:var(--admin-bg-subtle);padding:1rem 1.25rem;border-radius:8px;border:1px solid var(--admin-border)">
-            <img src="${esc(s.site_bg_image)}" alt="Current Background Preview" style="width:140px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--admin-border)">
-            <div>
-              <small style="display:block;color:var(--admin-text-muted)">Current Active Background Photo</small>
-              <code style="font-size:0.82rem;color:var(--admin-accent)">${esc(s.site_bg_image)}</code>
-              <div style="margin-top:0.6rem">
-                <button type="button" class="btn-admin-danger" onclick="handleRemoveBgImage()" style="padding:0.45rem 0.9rem;font-size:0.82rem;border:none;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:0.35rem">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                  <span>Remove Background Photo</span>
-                </button>
+        <div id="bgPhotoPreviewBox">
+          ${s.site_bg_image ? `
+            <div style="margin-top:1.2rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;background:var(--admin-bg-subtle);padding:1rem 1.25rem;border-radius:8px;border:1px solid var(--admin-border)">
+              <img src="${esc(s.site_bg_image)}" alt="Current Background Preview" style="width:140px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--admin-border)">
+              <div>
+                <small style="display:block;color:var(--admin-text-muted)">Current Active Background Photo</small>
+                <code style="font-size:0.82rem;color:var(--admin-accent)">${esc(s.site_bg_image)}</code>
+                <div style="margin-top:0.6rem">
+                  <button type="button" class="btn-admin-danger" onclick="handleRemoveBgImage()" style="padding:0.45rem 0.9rem;font-size:0.82rem;border:none;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:0.35rem">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <span>Remove Background Photo</span>
+                  </button>
+                </div>
               </div>
+            </div>` : `
+            <div style="margin-top:1rem;padding:0.75rem 1rem;background:var(--admin-bg-subtle);border:1px dashed var(--admin-border);border-radius:8px;font-size:0.85rem;color:var(--admin-text-muted)">
+              ℹ️ No background photo currently uploaded. Website is using clean solid background color.
             </div>
-          </div>` : `
-          <div style="margin-top:1rem;padding:0.75rem 1rem;background:var(--admin-bg-subtle);border:1px dashed var(--admin-border);border-radius:8px;font-size:0.85rem;color:var(--admin-text-muted)">
-            ℹ️ No background photo currently uploaded. Website is using clean solid background color.
-          </div>
-        `}
+          `}
+        </div>
       </div>
 
       <!-- TOP ANNOUNCEMENT BANNER SETTINGS -->
@@ -1500,12 +1520,12 @@ async function renderSettingsTab() {
             <h3>📢 Top Announcement Bar (Above Navigation Bar)</h3>
             <small style="color:var(--admin-text-muted)">Show or hide the announcement strip at the very top of your website, and customize its text and link.</small>
           </div>
-          <span class="table-badge ${s.announcement_enabled !== 'false' && s.announcement_enabled !== '0' ? 'active' : 'paused'}">
+          <span id="announcementStatusBadge" class="table-badge ${s.announcement_enabled !== 'false' && s.announcement_enabled !== '0' ? 'active' : 'paused'}">
             ${s.announcement_enabled !== 'false' && s.announcement_enabled !== '0' ? 'ENABLED (VISIBLE)' : 'HIDDEN'}
           </span>
         </div>
 
-        <form onsubmit="handleSaveAnnouncementSettings(event)">
+        <form id="settingsAnnouncementForm" onsubmit="handleSaveAnnouncementSettings(event)">
           <div class="admin-form-group">
             <label>1. Show Announcement Bar on Website?</label>
             <select name="announcement_enabled" id="announcementEnabledSelect">
@@ -1533,7 +1553,7 @@ async function renderSettingsTab() {
             </div>
           </div>
 
-          <button type="submit" class="btn-admin-primary" style="margin-top:0.5rem">Save Announcement Bar Settings</button>
+          <button type="submit" class="btn-admin-primary" style="margin-top:0.5rem">💾 Save Announcement Bar Settings</button>
         </form>
       </div>
 
@@ -1553,7 +1573,7 @@ async function renderSettingsTab() {
               <img id="heroPreviewImg" src="${esc(s.hero_bg_image || 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg')}" alt="Hero Background Preview" style="width:220px;height:120px;object-fit:cover;display:block;opacity:${(parseInt(s.hero_bg_opacity || '70', 10) / 100).toFixed(2)};transition:opacity 0.2s ease">
             </div>
             <div style="flex:1;min-width:220px">
-              <code style="display:block;font-size:0.8rem;word-break:break-all;color:var(--admin-accent);margin-bottom:0.4rem">${esc(s.hero_bg_image || 'Default Sahyadri Wallpaper')}</code>
+              <code id="heroActiveUrlCode" style="display:block;font-size:0.8rem;word-break:break-all;color:var(--admin-accent);margin-bottom:0.4rem">${esc(s.hero_bg_image || 'Default Sahyadri Wallpaper')}</code>
               <div style="font-size:0.82rem;color:var(--admin-text-muted);margin-bottom:0.6rem">Current Visibility / Opacity: <strong id="heroCurrentOpLabel" style="color:var(--admin-accent)">${esc(s.hero_bg_opacity || '70')}%</strong></div>
               <button type="button" class="btn-admin-danger btn-admin-sm" onclick="handleRemoveHeroBgImage()">🔄 Reset to Default Photo</button>
             </div>
@@ -1561,7 +1581,7 @@ async function renderSettingsTab() {
         </div>
 
         <!-- HERO PHOTO TRANSPARENCY / OPACITY SLIDER -->
-        <form onsubmit="handleSaveHeroOpacity(event)" style="background:#fff;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.25rem">
+        <form id="settingsHeroOpacityForm" onsubmit="handleSaveHeroOpacity(event)" style="background:#fff;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.25rem">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
             <h4 style="font-size:0.95rem;font-weight:700;display:flex;align-items:center;gap:0.4rem">
               <span>🎚️</span> Hero Photo Transparency / Visibility:
@@ -1601,13 +1621,13 @@ async function renderSettingsTab() {
           </div>
         </form>
 
-        <form onsubmit="handleSaveHeroBgUrl(event)" style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border)">
+        <form id="settingsHeroUrlForm" onsubmit="handleSaveHeroBgUrl(event)" style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border)">
           <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:0.4rem">Option B: Set Direct Image URL</h4>
           <div class="admin-form-group">
             <input type="text" name="hero_bg_image" id="heroBgImageUrlInput" value="${esc(s.hero_bg_image || '')}" placeholder="https://images.unsplash.com/... or /uploads/...">
             <small>Paste any direct image link.</small>
           </div>
-          <button type="submit" class="btn-admin-primary">Save Hero Image Link</button>
+          <button type="submit" class="btn-admin-primary">💾 Save Hero Image Link</button>
         </form>
       </div>
 
@@ -1620,7 +1640,7 @@ async function renderSettingsTab() {
           </div>
         </div>
 
-        <form onsubmit="handleSavePolicySettings(event)">
+        <form id="settingsPoliciesForm" onsubmit="handleSavePolicySettings(event)">
           <div class="admin-form-group">
             <label>1. Terms &amp; Conditions</label>
             <textarea name="terms_conditions" rows="6" style="font-family:inherit;font-size:0.88rem;line-height:1.5">${esc(s.terms_conditions || '')}</textarea>
@@ -1639,17 +1659,18 @@ async function renderSettingsTab() {
             <small>Refund percentages based on days prior to trek and bad weather guidelines.</small>
           </div>
 
-          <button type="submit" class="btn-admin-primary" style="margin-top:0.5rem">Save Policies &amp; Terms</button>
+          <button type="submit" class="btn-admin-primary" style="margin-top:0.5rem">💾 Save Policies &amp; Terms</button>
         </form>
       </div>
 
-      <div class="admin-panel" style="max-width:800px">
+      <!-- RAZORPAY GATEWAY -->
+      <div class="admin-panel" style="max-width:800px;margin-bottom:2rem">
         <div class="admin-panel-head">
           <div>
             <h3>💳 Razorpay Real Test Gateway (Official Demo Mode)</h3>
             <small style="color:var(--admin-text-muted)">Connect your official Razorpay Test Mode keys to open the real Razorpay Checkout popup (Cards, UPI, Netbanking simulation).</small>
           </div>
-          <span class="table-badge ${s.razorpay_enabled === 'false' ? 'paused' : ((s.razorpay_key_id && s.razorpay_key_id !== 'rzp_test_5172839485' && s.razorpay_key_secret && s.razorpay_key_secret !== 'rzp_test_secret_demo') ? 'active' : 'fast_filling')}">
+          <span id="razorpayStatusBadge" class="table-badge ${s.razorpay_enabled === 'false' ? 'paused' : ((s.razorpay_key_id && s.razorpay_key_id !== 'rzp_test_5172839485' && s.razorpay_key_secret && s.razorpay_key_secret !== 'rzp_test_secret_demo') ? 'active' : 'fast_filling')}">
             ${s.razorpay_enabled === 'false' ? 'DISABLED' : ((s.razorpay_key_id && s.razorpay_key_id !== 'rzp_test_5172839485' && s.razorpay_key_secret && s.razorpay_key_secret !== 'rzp_test_secret_demo') ? '⚡ REAL TEST GATEWAY ACTIVE' : '⚠️ DEMO PLACEHOLDER')}
           </span>
         </div>
@@ -1672,11 +1693,11 @@ async function renderSettingsTab() {
             <li>Top-right header mein toggle ko <strong>"Test Mode"</strong> par switch karein.</li>
             <li>Left sidebar: <strong>Account &amp; Settings &rarr; API Keys</strong> par jakar <strong>"Generate Test Key"</strong> button par click karein.</li>
             <li>Wahan se <strong>Key ID</strong> (starts with <code>rzp_test_...</code>) aur <strong>Key Secret</strong> copy karein.</li>
-            <li>Niche diye gaye box mein paste karke <strong>"Save Razorpay Settings"</strong> karein, phir <strong>"⚡ Test Razorpay Connection"</strong> button dabayein!</li>
+            <li>Niche diye gaye box mein paste karke <strong>"Save Razorpay Settings"</strong> karein, phir <strong>"⚡ Test API Connection"</strong> button dabayein!</li>
           </ol>
         </div>
 
-        <form onsubmit="handleSaveSettings(event)">
+        <form id="settingsRazorpayForm" onsubmit="handleSaveRazorpaySettings(event)">
           <div class="admin-form-group">
             <label>Razorpay Online Checkout</label>
             <select name="razorpay_enabled">
@@ -1686,13 +1707,13 @@ async function renderSettingsTab() {
           </div>
           <div class="admin-form-group">
             <label>Razorpay Key ID (Test Mode Key)</label>
-            <input type="text" id="rzpKeyIdInput" name="razorpay_key_id" value="${esc(s.razorpay_key_id || 'rzp_test_5172839485')}" placeholder="rzp_test_xxxxxxxxxxxxxx" required>
+            <input type="text" id="rzpKeyIdInput" name="razorpay_key_id" value="${esc(s.razorpay_key_id !== undefined ? s.razorpay_key_id : '')}" placeholder="rzp_test_xxxxxxxxxxxxxx" required>
             <small>Aapke Razorpay Dashboard se generated Test Key ID (starts with <code>rzp_test_</code>).</small>
           </div>
           <div class="admin-form-group">
             <label>Razorpay Key Secret (Test Mode Secret)</label>
             <div class="password-input-wrapper">
-              <input type="password" id="rzpKeySecretInput" name="razorpay_key_secret" value="${esc(s.razorpay_key_secret || 'rzp_test_secret_demo')}" placeholder="Enter test key secret" required>
+              <input type="password" id="rzpKeySecretInput" name="razorpay_key_secret" value="${esc(s.razorpay_key_secret !== undefined ? s.razorpay_key_secret : '')}" placeholder="Enter test key secret" required>
               <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('rzpKeySecretInput', this)" title="Show/Hide Key Secret">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
@@ -1705,8 +1726,8 @@ async function renderSettingsTab() {
           </div>
 
           <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-top:1.2rem">
-            <button type="submit" class="btn-admin-primary">
-              <span>Save Razorpay Settings</span>
+            <button type="submit" class="btn-admin-primary" id="btnSaveRazorpay">
+              <span>💾 Save Razorpay Settings</span>
             </button>
             <button type="button" class="btn-admin-verify" id="btnTestRzpConn" onclick="handleTestRazorpayKeys()">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -1744,13 +1765,15 @@ async function renderSettingsTab() {
         </div>
       </div>
 
-        <hr style="margin:2.5rem 0;border:none;border-top:1px solid var(--admin-border)">
-
+      <!-- BRAND & CONTACT SETTINGS -->
+      <div class="admin-panel" style="max-width:800px;margin-bottom:2rem">
         <div class="admin-panel-head">
-          <h3>Manual Booking &amp; Brand Settings</h3>
-          <small style="color:var(--admin-text-muted)">Changes take effect immediately on public site.</small>
+          <div>
+            <h3>📱 Contact &amp; Manual Booking Details</h3>
+            <small style="color:var(--admin-text-muted)">Changes take effect immediately across public booking sections &amp; footer.</small>
+          </div>
         </div>
-        <form onsubmit="handleSaveSettings(event)">
+        <form id="settingsContactForm" onsubmit="handleSaveContactSettings(event)">
           <div class="admin-form-group">
             <label>WhatsApp Number (without + or spaces)</label>
             <input type="text" name="whatsapp_number" value="${esc(s.whatsapp_number || '919137761400')}" required>
@@ -1758,7 +1781,7 @@ async function renderSettingsTab() {
           </div>
           <div class="admin-form-group">
             <label>UPI ID</label>
-            <input type="text" name="upi_id" value="${esc(s.upi_id || 'pahadnamatrails@okaxis')}" required>
+            <input type="text" name="upi_id" value="${esc(s.upi_id || '9137761400@ptsbi')}" required>
             <small>Displayed on payment section with 1-click copy.</small>
           </div>
           <div class="admin-form-group">
@@ -1777,7 +1800,7 @@ async function renderSettingsTab() {
             <label>Booking Instructions</label>
             <textarea name="booking_instructions" rows="4">${esc(s.booking_instructions || '')}</textarea>
           </div>
-          <button type="submit" class="btn-admin-primary" style="margin-top:1rem">Save All Settings</button>
+          <button type="submit" class="btn-admin-primary" id="btnSaveContact" style="margin-top:1rem">💾 Save Contact &amp; Brand Details</button>
         </form>
 
         <hr style="margin:2.5rem 0;border:none;border-top:1px solid var(--admin-border)">
@@ -1788,14 +1811,16 @@ async function renderSettingsTab() {
           <input type="file" name="logo_image" accept="image/*" required>
           <button type="submit" class="btn-admin-primary">Upload &amp; Apply Logo</button>
         </form>
-        ${s.brand_logo ? `
-          <div style="margin-top:1rem;display:flex;align-items:center;gap:1.2rem">
-            <img src="${esc(s.brand_logo)}?t=${Date.now()}" alt="Current Brand Logo" style="width:72px;height:72px;border-radius:12px;border:1.5px solid var(--admin-border);padding:2px;background:#1e2c22;object-fit:cover">
-            <div>
-              <small style="display:block;color:var(--admin-text-muted)">Current Active Brand Logo</small>
-              <code style="font-size:0.82rem;color:var(--admin-accent)">${esc(s.brand_logo)}</code>
-            </div>
-          </div>` : ''}
+        <div id="brandLogoPreviewBox">
+          ${s.brand_logo ? `
+            <div style="margin-top:1rem;display:flex;align-items:center;gap:1.2rem">
+              <img src="${esc(s.brand_logo)}?t=${Date.now()}" alt="Current Brand Logo" style="width:72px;height:72px;border-radius:12px;border:1.5px solid var(--admin-border);padding:2px;background:#1e2c22;object-fit:cover">
+              <div>
+                <small style="display:block;color:var(--admin-text-muted)">Current Active Brand Logo</small>
+                <code style="font-size:0.82rem;color:var(--admin-accent)">${esc(s.brand_logo)}</code>
+              </div>
+            </div>` : ''}
+        </div>
 
         <hr style="margin:2.5rem 0;border:none;border-top:1px solid var(--admin-border)">
 
@@ -1805,31 +1830,123 @@ async function renderSettingsTab() {
           <input type="file" name="qr_image" accept="image/*" required>
           <button type="submit" class="btn-admin-primary">Upload QR Code</button>
         </form>
-        ${s.payment_qr ? `
-          <div style="margin-top:1.2rem;display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap">
-            <div>
-              <small style="display:block;color:var(--admin-text-muted);margin-bottom:0.4rem">Current Active QR Code:</small>
-              <img src="${esc(s.payment_qr)}" style="width:160px;border-radius:8px;border:1px solid var(--admin-border);padding:4px;background:#fff">
+        <div id="qrPreviewBox">
+          ${s.payment_qr ? `
+            <div style="margin-top:1.2rem;display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap">
+              <div>
+                <small style="display:block;color:var(--admin-text-muted);margin-bottom:0.4rem">Current Active QR Code:</small>
+                <img src="${esc(s.payment_qr)}" style="width:160px;border-radius:8px;border:1px solid var(--admin-border);padding:4px;background:#fff">
+              </div>
+              <div style="padding-top:1.5rem">
+                <button type="button" class="btn-admin-danger" onclick="handleRemoveQr()" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1rem;font-size:0.85rem;border-radius:6px;cursor:pointer;border:none">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  <span>Remove QR Code</span>
+                </button>
+                <p style="font-size:0.8rem;color:var(--admin-text-muted);margin-top:0.4rem">Removes the current QR code from website &amp; settings.</p>
+              </div>
+            </div>` : `
+            <div style="margin-top:1rem;padding:0.75rem 1rem;background:#f8fafc;border:1px dashed var(--admin-border);border-radius:8px;font-size:0.85rem;color:var(--admin-text-muted)">
+              ℹ️ No payment QR code currently uploaded.
             </div>
-            <div style="padding-top:1.5rem">
-              <button type="button" class="btn-admin-danger" onclick="handleRemoveQr()" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1rem;font-size:0.85rem;border-radius:6px;cursor:pointer;border:none">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                <span>Remove QR Code</span>
-              </button>
-              <p style="font-size:0.8rem;color:var(--admin-text-muted);margin-top:0.4rem">Removes the current QR code from website &amp; settings.</p>
-            </div>
-          </div>` : `
-          <div style="margin-top:1rem;padding:0.75rem 1rem;background:#f8fafc;border:1px dashed var(--admin-border);border-radius:8px;font-size:0.85rem;color:var(--admin-text-muted)">
-            ℹ️ No payment QR code currently uploaded.
-          </div>
-        `}
+          `}
+        </div>
+      </div>
+
+      <!-- BOTTOM MASTER ACTION BAR -->
+      <div class="settings-bottom-bar" style="max-width:800px;margin-top:2.5rem;margin-bottom:2rem;padding:1.4rem;background:var(--admin-bg-subtle,#f8fafc);border-radius:12px;border:1.5px solid var(--admin-border,#e2e8f0);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;box-shadow:0 2px 6px rgba(0,0,0,0.03)">
+        <div>
+          <h4 style="margin:0 0 0.25rem 0;font-size:1.05rem">💾 Done with your changes?</h4>
+          <small style="color:var(--admin-text-muted,#64748b)">Save all updated sections at once with zero page refresh.</small>
+        </div>
+        <button type="button" class="btn-admin-primary" id="btnSaveAllSettingsBottom" onclick="handleSaveAllSettings(event)" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;font-weight:700;font-size:0.95rem;border-radius:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span>Save All Settings Now</span>
+        </button>
       </div>`;
   } catch (err) {
     content.innerHTML = '<p style="color:red">Failed: ' + esc(err.message) + '</p>';
   }
 }
 
+async function handleSaveAllSettings(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const btnTop = document.getElementById('btnSaveAllSettingsTop');
+  const btnBottom = document.getElementById('btnSaveAllSettingsBottom');
+  const setBtnState = (loading) => {
+    if (btnTop) { btnTop.disabled = loading; btnTop.innerHTML = loading ? '<span>⏳ Saving All...</span>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>💾 Save All Settings</span>'; }
+    if (btnBottom) { btnBottom.disabled = loading; btnBottom.innerHTML = loading ? '<span>⏳ Saving All...</span>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>Save All Settings Now</span>'; }
+  };
+  setBtnState(true);
+
+  try {
+    const theme = document.getElementById('activeSiteThemeInput')?.value || 'sahyadri-sanchara';
+    const bgForm = document.getElementById('settingsBgForm');
+    const bgData = bgForm ? Object.fromEntries(new FormData(bgForm).entries()) : {};
+    const annForm = document.getElementById('settingsAnnouncementForm');
+    const annData = annForm ? Object.fromEntries(new FormData(annForm).entries()) : {};
+    const heroOpForm = document.getElementById('settingsHeroOpacityForm');
+    const heroOpData = heroOpForm ? Object.fromEntries(new FormData(heroOpForm).entries()) : {};
+    const heroUrlForm = document.getElementById('settingsHeroUrlForm');
+    const heroUrlData = heroUrlForm ? Object.fromEntries(new FormData(heroUrlForm).entries()) : {};
+    const polForm = document.getElementById('settingsPoliciesForm');
+    const polData = polForm ? Object.fromEntries(new FormData(polForm).entries()) : {};
+    const rzpForm = document.getElementById('settingsRazorpayForm');
+    const rzpData = rzpForm ? Object.fromEntries(new FormData(rzpForm).entries()) : {};
+    const contactForm = document.getElementById('settingsContactForm');
+    const contactData = contactForm ? Object.fromEntries(new FormData(contactForm).entries()) : {};
+
+    const combined = {
+      site_theme: theme,
+      ...bgData,
+      ...annData,
+      ...heroOpData,
+      ...heroUrlData,
+      ...polData,
+      ...rzpData,
+      ...contactData
+    };
+
+    await adminApi('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(combined)
+    });
+
+    // Update status badges in-place
+    const rzpBadge = document.getElementById('razorpayStatusBadge');
+    if (rzpBadge) {
+      const isEnabled = combined.razorpay_enabled !== 'false';
+      const keyId = combined.razorpay_key_id ? combined.razorpay_key_id.trim() : '';
+      const keySecret = combined.razorpay_key_secret ? combined.razorpay_key_secret.trim() : '';
+      if (!isEnabled) {
+        rzpBadge.className = 'table-badge paused';
+        rzpBadge.textContent = 'DISABLED';
+      } else if (keyId && keyId !== 'rzp_test_5172839485' && keySecret && keySecret !== 'rzp_test_secret_demo') {
+        rzpBadge.className = 'table-badge active';
+        rzpBadge.textContent = '⚡ REAL TEST GATEWAY ACTIVE';
+      } else {
+        rzpBadge.className = 'table-badge fast_filling';
+        rzpBadge.textContent = '⚠️ DEMO PLACEHOLDER';
+      }
+    }
+
+    const annBadge = document.getElementById('announcementStatusBadge');
+    if (annBadge) {
+      const isEnabled = combined.announcement_enabled !== 'false' && combined.announcement_enabled !== '0';
+      annBadge.className = 'table-badge ' + (isEnabled ? 'active' : 'paused');
+      annBadge.textContent = isEnabled ? 'ENABLED (VISIBLE)' : 'HIDDEN';
+    }
+
+    showToast('✅ All settings saved successfully!');
+  } catch (err) {
+    alert('Failed to save all settings: ' + err.message);
+  } finally {
+    setBtnState(false);
+  }
+}
+
 async function handleSaveSettings(e) {
+  // Legacy / fallback router
   e.preventDefault();
   const form = e.target;
   const formData = new FormData(form);
@@ -1840,9 +1957,68 @@ async function handleSaveSettings(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    showToast('Settings saved!');
-    renderSettingsTab();
+    showToast('Settings saved successfully!');
   } catch (err) { alert('Failed: ' + err.message); }
+}
+
+async function handleSaveRazorpaySettings(e) {
+  e.preventDefault();
+  const form = e.target;
+  const btn = document.getElementById('btnSaveRazorpay') || form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Saving...</span>'; }
+  const formData = new FormData(form);
+  const body = Object.fromEntries(formData.entries());
+  try {
+    await adminApi('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const badge = document.getElementById('razorpayStatusBadge');
+    if (badge) {
+      const isEnabled = body.razorpay_enabled !== 'false';
+      const keyId = body.razorpay_key_id ? body.razorpay_key_id.trim() : '';
+      const keySecret = body.razorpay_key_secret ? body.razorpay_key_secret.trim() : '';
+      if (!isEnabled) {
+        badge.className = 'table-badge paused';
+        badge.textContent = 'DISABLED';
+      } else if (keyId && keyId !== 'rzp_test_5172839485' && keySecret && keySecret !== 'rzp_test_secret_demo') {
+        badge.className = 'table-badge active';
+        badge.textContent = '⚡ REAL TEST GATEWAY ACTIVE';
+      } else {
+        badge.className = 'table-badge fast_filling';
+        badge.textContent = '⚠️ DEMO PLACEHOLDER';
+      }
+    }
+    showToast('Razorpay settings saved successfully!');
+  } catch (err) {
+    alert('Failed to save Razorpay settings: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = oldText; }
+  }
+}
+
+async function handleSaveContactSettings(e) {
+  e.preventDefault();
+  const form = e.target;
+  const btn = document.getElementById('btnSaveContact') || form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Saving...</span>'; }
+  const formData = new FormData(form);
+  const body = Object.fromEntries(formData.entries());
+  try {
+    await adminApi('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    showToast('Brand contact & booking details saved!');
+  } catch (err) {
+    alert('Failed to save contact settings: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = oldText; }
+  }
 }
 
 function toggleSecretVisibility(inputId, btn) {
@@ -2003,13 +2179,44 @@ function formatThemeName(key) {
 
 async function handleSelectTheme(themeKey) {
   try {
+    const input = document.getElementById('activeSiteThemeInput');
+    if (input) input.value = themeKey;
+
     await adminApi('/api/admin/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ site_theme: themeKey })
     });
+
+    const activeBadge = document.getElementById('activeThemeHeaderBadge');
+    if (activeBadge) activeBadge.textContent = 'Active: ' + formatThemeName(themeKey);
+
+    document.querySelectorAll('.theme-preset-card').forEach(card => {
+      card.classList.remove('active');
+      const badge = card.querySelector('.theme-badge-applied');
+      if (badge) badge.remove();
+      const btn = card.querySelector('.btn-theme-apply');
+      if (btn) {
+        btn.classList.remove('applied');
+        btn.textContent = 'Apply This Theme';
+      }
+    });
+
+    const selectedCard = document.querySelector(`.theme-preset-card[data-theme="${themeKey}"]`);
+    if (selectedCard) {
+      selectedCard.classList.add('active');
+      const topBar = selectedCard.querySelector('.theme-card-top');
+      if (topBar && !topBar.querySelector('.theme-badge-applied')) {
+        topBar.insertAdjacentHTML('beforeend', '<span class="theme-badge-applied">✓ ACTIVE</span>');
+      }
+      const btn = selectedCard.querySelector('.btn-theme-apply');
+      if (btn) {
+        btn.classList.add('applied');
+        btn.textContent = '✓ Currently Active';
+      }
+    }
+
     showToast('Theme updated to ' + formatThemeName(themeKey) + ' successfully!');
-    renderSettingsTab();
   } catch (err) {
     alert('Failed to update theme: ' + err.message);
   }
@@ -2037,6 +2244,9 @@ function setHeroOpacityPreset(val) {
 async function handleSaveHeroOpacity(e) {
   e.preventDefault();
   const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Saving...</span>'; }
   const formData = new FormData(form);
   const opacityVal = formData.get('hero_bg_opacity')?.trim() || '70';
   try {
@@ -2045,10 +2255,12 @@ async function handleSaveHeroOpacity(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ hero_bg_opacity: opacityVal })
     });
+    syncHeroOpacityPreview(opacityVal);
     showToast('Hero background transparency updated to ' + opacityVal + '%!');
-    renderSettingsTab();
   } catch (err) {
     alert('Failed to save transparency: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = oldText; }
   }
 }
 
@@ -2074,6 +2286,9 @@ function setPresetColor(hex) {
 async function handleSaveBgSettings(e) {
   e.preventDefault();
   const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Saving...</span>'; }
   const formData = new FormData(form);
   const body = Object.fromEntries(formData.entries());
   try {
@@ -2083,13 +2298,16 @@ async function handleSaveBgSettings(e) {
       body: JSON.stringify(body)
     });
     showToast('Theme & background appearance saved successfully!');
-    renderSettingsTab();
-  } catch (err) { alert('Failed to save theme settings: ' + err.message); }
+  } catch (err) { alert('Failed to save background settings: ' + err.message); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = oldText; } }
 }
 
 async function handleSaveAnnouncementSettings(e) {
   e.preventDefault();
   const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Saving...</span>'; }
   const formData = new FormData(form);
   const body = Object.fromEntries(formData.entries());
   try {
@@ -2098,16 +2316,26 @@ async function handleSaveAnnouncementSettings(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
+    const badge = document.getElementById('announcementStatusBadge');
+    if (badge) {
+      const isEnabled = body.announcement_enabled !== 'false' && body.announcement_enabled !== '0';
+      badge.className = 'table-badge ' + (isEnabled ? 'active' : 'paused');
+      badge.textContent = isEnabled ? 'ENABLED (VISIBLE)' : 'HIDDEN';
+    }
     showToast('Top announcement bar settings saved!');
-    renderSettingsTab();
   } catch (err) {
     alert('Failed to save announcement settings: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = oldText; }
   }
 }
 
 async function handleUploadHeroBgImage(e) {
   e.preventDefault();
   const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Uploading...</span>'; }
   const formData = new FormData(form);
   try {
     const res = await fetch('/api/admin/settings/hero-background', {
@@ -2117,39 +2345,62 @@ async function handleUploadHeroBgImage(e) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Upload failed');
+    const previewImg = document.getElementById('heroPreviewImg');
+    const urlLabel = document.getElementById('heroActiveUrlCode');
+    const urlInput = document.getElementById('heroBgImageUrlInput');
+    if (previewImg && data.hero_bg_image) previewImg.src = data.hero_bg_image;
+    if (urlLabel && data.hero_bg_image) urlLabel.textContent = data.hero_bg_image;
+    if (urlInput && data.hero_bg_image) urlInput.value = data.hero_bg_image;
+    form.reset();
     showToast('Hero background photo updated live!');
-    renderSettingsTab();
   } catch (err) { alert('Upload failed: ' + err.message); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = oldText; } }
 }
 
 async function handleRemoveHeroBgImage() {
   if (!confirm('Reset hero background photo to default Sahyadri wallpaper?')) return;
   try {
     const res = await adminApi('/api/admin/settings/hero-background', { method: 'DELETE' });
+    const defaultHero = res.hero_bg_image || 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg';
+    const previewImg = document.getElementById('heroPreviewImg');
+    const urlLabel = document.getElementById('heroActiveUrlCode');
+    const urlInput = document.getElementById('heroBgImageUrlInput');
+    if (previewImg) previewImg.src = defaultHero;
+    if (urlLabel) urlLabel.textContent = 'Default Sahyadri Wallpaper';
+    if (urlInput) urlInput.value = defaultHero;
     showToast('Hero background reset to default');
-    renderSettingsTab();
   } catch (err) { alert('Reset failed: ' + err.message); }
 }
 
 async function handleSaveHeroBgUrl(e) {
   e.preventDefault();
   const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Saving...</span>'; }
   const formData = new FormData(form);
-  const heroUrl = formData.get('hero_bg_image')?.trim();
+  const heroUrl = formData.get('hero_bg_image')?.trim() || '';
   try {
     await adminApi('/api/admin/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ hero_bg_image: heroUrl })
     });
-    showToast('Hero background image URL saved!');
-    renderSettingsTab();
+    const previewImg = document.getElementById('heroPreviewImg');
+    const urlLabel = document.getElementById('heroActiveUrlCode');
+    if (previewImg && heroUrl) previewImg.src = heroUrl;
+    if (urlLabel) urlLabel.textContent = heroUrl || 'Default Sahyadri Wallpaper';
+    showToast('Hero background image link saved!');
   } catch (err) { alert('Save failed: ' + err.message); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = oldText; } }
 }
 
 async function handleSavePolicySettings(e) {
   e.preventDefault();
   const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Saving...</span>'; }
   const formData = new FormData(form);
   const body = Object.fromEntries(formData.entries());
   try {
@@ -2159,13 +2410,16 @@ async function handleSavePolicySettings(e) {
       body: JSON.stringify(body)
     });
     showToast('Policies, Terms & Conditions updated successfully!');
-    renderSettingsTab();
   } catch (err) { alert('Failed to save policies: ' + err.message); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = oldText; } }
 }
 
 async function handleUploadBgImage(e) {
   e.preventDefault();
   const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Uploading...</span>'; }
   const formData = new FormData(form);
   try {
     const res = await fetch('/api/admin/settings/background', {
@@ -2175,9 +2429,29 @@ async function handleUploadBgImage(e) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Upload failed');
+    const bgBox = document.getElementById('bgPhotoPreviewBox');
+    const bgUrlInput = document.getElementById('siteBgImageUrl');
+    if (bgUrlInput && data.site_bg_image) bgUrlInput.value = data.site_bg_image;
+    if (bgBox && data.site_bg_image) {
+      bgBox.innerHTML = `
+        <div style="margin-top:1.2rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;background:var(--admin-bg-subtle);padding:1rem 1.25rem;border-radius:8px;border:1px solid var(--admin-border)">
+          <img src="${esc(data.site_bg_image)}" alt="Current Background Preview" style="width:140px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--admin-border)">
+          <div>
+            <small style="display:block;color:var(--admin-text-muted)">Current Active Background Photo</small>
+            <code style="font-size:0.82rem;color:var(--admin-accent)">${esc(data.site_bg_image)}</code>
+            <div style="margin-top:0.6rem">
+              <button type="button" class="btn-admin-danger" onclick="handleRemoveBgImage()" style="padding:0.45rem 0.9rem;font-size:0.82rem;border:none;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:0.35rem">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span>Remove Background Photo</span>
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }
+    form.reset();
     showToast('Background photo uploaded and applied!');
-    renderSettingsTab();
   } catch (err) { alert('Background photo upload failed: ' + err.message); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = oldText; } }
 }
 
 async function handleRemoveBgImage() {
@@ -2189,14 +2463,25 @@ async function handleRemoveBgImage() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to remove');
+    const bgBox = document.getElementById('bgPhotoPreviewBox');
+    const bgUrlInput = document.getElementById('siteBgImageUrl');
+    if (bgUrlInput) bgUrlInput.value = '';
+    if (bgBox) {
+      bgBox.innerHTML = `
+        <div style="margin-top:1rem;padding:0.75rem 1rem;background:var(--admin-bg-subtle);border:1px dashed var(--admin-border);border-radius:8px;font-size:0.85rem;color:var(--admin-text-muted)">
+          ℹ️ No background photo currently uploaded. Website is using clean solid background color.
+        </div>`;
+    }
     showToast('Background photo removed. Reverted to clean background color.');
-    renderSettingsTab();
   } catch (err) { alert('Failed to remove background photo: ' + err.message); }
 }
 
 async function handleUploadLogo(e) {
   e.preventDefault();
   const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Uploading...</span>'; }
   const formData = new FormData(form);
   try {
     const res = await fetch('/api/admin/settings/logo', {
@@ -2206,17 +2491,31 @@ async function handleUploadLogo(e) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Upload failed');
-    showToast('Brand logo updated successfully across the entire site!');
-    // Update logo in admin topbar / sidebar immediately
     const newLogo = (data.logo_url || '/brand/pahadnama-logo.png') + '?t=' + Date.now();
     document.querySelectorAll('.admin-nav-logo, .login-logo').forEach(img => img.src = newLogo);
-    renderSettingsTab();
+    const previewContainer = document.getElementById('brandLogoPreviewBox');
+    if (previewContainer) {
+      previewContainer.innerHTML = `
+        <div style="margin-top:1rem;display:flex;align-items:center;gap:1.2rem">
+          <img src="${newLogo}" alt="Current Brand Logo" style="width:72px;height:72px;border-radius:12px;border:1.5px solid var(--admin-border);padding:2px;background:#1e2c22;object-fit:cover">
+          <div>
+            <small style="display:block;color:var(--admin-text-muted)">Current Active Brand Logo</small>
+            <code style="font-size:0.82rem;color:var(--admin-accent)">${esc(data.logo_url)}</code>
+          </div>
+        </div>`;
+    }
+    form.reset();
+    showToast('Brand logo updated successfully across the entire site!');
   } catch (err) { alert('Logo upload failed: ' + err.message); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = oldText; } }
 }
 
 async function handleUploadQr(e) {
   e.preventDefault();
   const form = e.target;
+  const btn = form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Uploading...</span>'; }
   const formData = new FormData(form);
   try {
     const res = await fetch('/api/admin/settings/qr', {
@@ -2224,10 +2523,29 @@ async function handleUploadQr(e) {
       credentials: 'include',
       body: formData
     });
+    const data = await res.json();
     if (!res.ok) throw new Error('Upload failed');
+    const qrBox = document.getElementById('qrPreviewBox');
+    if (qrBox && data.payment_qr) {
+      qrBox.innerHTML = `
+        <div style="margin-top:1.2rem;display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap">
+          <div>
+            <small style="display:block;color:var(--admin-text-muted);margin-bottom:0.4rem">Current Active QR Code:</small>
+            <img src="${esc(data.payment_qr)}" style="width:160px;border-radius:8px;border:1px solid var(--admin-border);padding:4px;background:#fff">
+          </div>
+          <div style="padding-top:1.5rem">
+            <button type="button" class="btn-admin-danger" onclick="handleRemoveQr()" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1rem;font-size:0.85rem;border-radius:6px;cursor:pointer;border:none">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span>Remove QR Code</span>
+            </button>
+            <p style="font-size:0.8rem;color:var(--admin-text-muted);margin-top:0.4rem">Removes the current QR code from website &amp; settings.</p>
+          </div>
+        </div>`;
+    }
+    form.reset();
     showToast('Payment QR code updated!');
-    renderSettingsTab();
   } catch (err) { alert('QR upload failed: ' + err.message); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = oldText; } }
 }
 
 async function handleRemoveQr() {
@@ -2239,8 +2557,14 @@ async function handleRemoveQr() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to remove QR code');
+    const qrBox = document.getElementById('qrPreviewBox');
+    if (qrBox) {
+      qrBox.innerHTML = `
+        <div style="margin-top:1rem;padding:0.75rem 1rem;background:#f8fafc;border:1px dashed var(--admin-border);border-radius:8px;font-size:0.85rem;color:var(--admin-text-muted)">
+          ℹ️ No payment QR code currently uploaded.
+        </div>`;
+    }
     showToast('Payment QR code removed successfully!');
-    renderSettingsTab();
   } catch (err) {
     alert('Failed to remove QR code: ' + err.message);
   }
