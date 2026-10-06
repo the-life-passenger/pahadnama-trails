@@ -183,6 +183,7 @@ const defaultSettings = {
   announcement_link_url: '#custom-trek',
   hero_bg_image: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg',
   hero_bg_opacity: '70',
+  site_theme: 'sahyadri-sanchara',
   terms_conditions: `1. Trek Participation & Safety:
 - All participants must follow the instructions of the certified trek leaders at all times during the expedition.
 - Trekkers are responsible for their personal safety and must declare any medical conditions prior to the trek.

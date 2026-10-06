@@ -1321,13 +1321,105 @@ async function renderSettingsTab() {
   content.innerHTML = '<p>Loading settings...</p>';
   try {
     const s = await adminApi('/api/admin/settings');
+    const activeTheme = s.site_theme || 'sahyadri-sanchara';
     content.innerHTML = `
+      <!-- TRAVEL BRAND THEMES SELECTOR (1-CLICK SWITCHER) -->
+      <div class="admin-panel" style="max-width:800px;margin-bottom:2rem">
+        <div class="admin-panel-head">
+          <div>
+            <h3>🎨 Travel Website Themes &amp; Brand Styling</h3>
+            <small style="color:var(--admin-text-muted)">Choose from 4 professionally curated travel website design themes inspired by top travel &amp; trek platforms. 1-click activate.</small>
+          </div>
+          <span style="font-size:0.75rem;padding:0.3rem 0.85rem;border-radius:999px;background:var(--admin-accent);color:#ffffff;font-weight:700">
+            Active: ${formatThemeName(activeTheme)}
+          </span>
+        </div>
+
+        <div class="theme-presets-grid">
+          <!-- Theme 1 -->
+          <div class="theme-preset-card ${activeTheme === 'sahyadri-sanchara' ? 'active' : ''}" onclick="handleSelectTheme('sahyadri-sanchara')">
+            <div class="theme-card-top">
+              <span class="theme-ref-badge">⭐ Ref: sahyadrisanchara.com</span>
+              ${activeTheme === 'sahyadri-sanchara' ? '<span class="theme-badge-applied">✓ ACTIVE</span>' : ''}
+            </div>
+            <h4 class="theme-card-title">Sahyadri Sanchara</h4>
+            <p class="theme-card-desc">Western Ghats Crimson &amp; Clean Alpine. Modern editorial outdoor brand aesthetic with high-contrast text and crisp call-to-actions.</p>
+            <div class="theme-swatches">
+              <div class="theme-swatch" style="background:#b91c1c" title="Primary Crimson (#b91c1c)"></div>
+              <div class="theme-swatch" style="background:#0f172a" title="Obsidian Slate (#0f172a)"></div>
+              <div class="theme-swatch" style="background:#f59e0b" title="Amber Highlight (#f59e0b)"></div>
+              <div class="theme-swatch" style="background:#f9fafb" title="Clean White (#ffffff)"></div>
+            </div>
+            <button type="button" class="btn-theme-apply ${activeTheme === 'sahyadri-sanchara' ? 'applied' : ''}">
+              ${activeTheme === 'sahyadri-sanchara' ? '✓ Currently Active' : 'Apply This Theme'}
+            </button>
+          </div>
+
+          <!-- Theme 2 -->
+          <div class="theme-preset-card ${activeTheme === 'indiahikes-alpine' ? 'active' : ''}" onclick="handleSelectTheme('indiahikes-alpine')">
+            <div class="theme-card-top">
+              <span class="theme-ref-badge">🏔️ Ref: indiahikes.com</span>
+              ${activeTheme === 'indiahikes-alpine' ? '<span class="theme-badge-applied">✓ ACTIVE</span>' : ''}
+            </div>
+            <h4 class="theme-card-title">Indiahikes Alpine</h4>
+            <p class="theme-card-desc">Himalayan Summit Sunburst Orange &amp; Alpine Slate. Authoritative technical expedition styling with punchy status tags and clarity.</p>
+            <div class="theme-swatches">
+              <div class="theme-swatch" style="background:#ea580c" title="Summit Orange (#ea580c)"></div>
+              <div class="theme-swatch" style="background:#090d16" title="Midnight Slate (#090d16)"></div>
+              <div class="theme-swatch" style="background:#0d9488" title="Pine Teal (#0d9488)"></div>
+              <div class="theme-swatch" style="background:#f8fafc" title="Snow Mist (#f8fafc)"></div>
+            </div>
+            <button type="button" class="btn-theme-apply ${activeTheme === 'indiahikes-alpine' ? 'applied' : ''}">
+              ${activeTheme === 'indiahikes-alpine' ? '✓ Currently Active' : 'Apply This Theme'}
+            </button>
+          </div>
+
+          <!-- Theme 3 -->
+          <div class="theme-preset-card ${activeTheme === 'rainforest-emerald' ? 'active' : ''}" onclick="handleSelectTheme('rainforest-emerald')">
+            <div class="theme-card-top">
+              <span class="theme-ref-badge">🌿 Ref: trekthehimalayas.com</span>
+              ${activeTheme === 'rainforest-emerald' ? '<span class="theme-badge-applied">✓ ACTIVE</span>' : ''}
+            </div>
+            <h4 class="theme-card-title">Rainforest Emerald</h4>
+            <p class="theme-card-desc">Monsoon Sahyadri Forest Green &amp; Amber Gold. Lush canopy tones, misty waterfall vibe with deep eco-trekking depth.</p>
+            <div class="theme-swatches">
+              <div class="theme-swatch" style="background:#059669" title="Forest Emerald (#059669)"></div>
+              <div class="theme-swatch" style="background:#091a11" title="Obsidian Pine (#091a11)"></div>
+              <div class="theme-swatch" style="background:#f59e0b" title="Amber Sunrise (#f59e0b)"></div>
+              <div class="theme-swatch" style="background:#f2f7f4" title="Mist White (#f2f7f4)"></div>
+            </div>
+            <button type="button" class="btn-theme-apply ${activeTheme === 'rainforest-emerald' ? 'applied' : ''}">
+              ${activeTheme === 'rainforest-emerald' ? '✓ Currently Active' : 'Apply This Theme'}
+            </button>
+          </div>
+
+          <!-- Theme 4 -->
+          <div class="theme-preset-card ${activeTheme === 'zostel-nomad' ? 'active' : ''}" onclick="handleSelectTheme('zostel-nomad')">
+            <div class="theme-card-top">
+              <span class="theme-ref-badge">🎒 Ref: zostel.com &bull; tripoto</span>
+              ${activeTheme === 'zostel-nomad' ? '<span class="theme-badge-applied">✓ ACTIVE</span>' : ''}
+            </div>
+            <h4 class="theme-card-title">Zostel Nomad</h4>
+            <p class="theme-card-desc">Warm Terracotta &amp; Sunset Rose with Desert Sand tones. Youthful bohemian backpacker vibe, community trail memories &amp; warmth.</p>
+            <div class="theme-swatches">
+              <div class="theme-swatch" style="background:#e11d48" title="Burnt Rose (#e11d48)"></div>
+              <div class="theme-swatch" style="background:#18181b" title="Smoked Charcoal (#18181b)"></div>
+              <div class="theme-swatch" style="background:#f97316" title="Sunset Terracotta (#f97316)"></div>
+              <div class="theme-swatch" style="background:#faf8f5" title="Nomad Sand (#faf8f5)"></div>
+            </div>
+            <button type="button" class="btn-theme-apply ${activeTheme === 'zostel-nomad' ? 'applied' : ''}">
+              ${activeTheme === 'zostel-nomad' ? '✓ Currently Active' : 'Apply This Theme'}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- THEME & BACKGROUND APPEARANCE SETTINGS -->
       <div class="admin-panel" style="max-width:800px;margin-bottom:2rem">
         <div class="admin-panel-head">
           <div>
-            <h3>🎨 Website Theme &amp; Background Appearance</h3>
-            <small style="color:var(--admin-text-muted)">Customize your website's background color, upload a background photo, and control its visibility.</small>
+            <h3>🖼️ Custom Background Layer &amp; Opacity</h3>
+            <small style="color:var(--admin-text-muted)">Customize your website's background color, upload an optional background photo overlay, and adjust opacity.</small>
           </div>
         </div>
 
@@ -1860,6 +1952,31 @@ function previewRazorpayPopupLive() {
     rzp.open();
   } catch (err) {
     alert('Error launching Razorpay popup: ' + err.message);
+  }
+}
+
+function formatThemeName(key) {
+  switch (key) {
+    case 'indiahikes-alpine': return 'Indiahikes Alpine';
+    case 'rainforest-emerald': return 'Rainforest Emerald';
+    case 'zostel-nomad': return 'Zostel Nomad';
+    case 'sahyadri-sanchara':
+    default:
+      return 'Sahyadri Sanchara';
+  }
+}
+
+async function handleSelectTheme(themeKey) {
+  try {
+    await adminApi('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ site_theme: themeKey })
+    });
+    showToast('Theme updated to ' + formatThemeName(themeKey) + ' successfully!');
+    renderSettingsTab();
+  } catch (err) {
+    alert('Failed to update theme: ' + err.message);
   }
 }
 

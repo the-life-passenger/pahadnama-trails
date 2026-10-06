@@ -991,3 +991,113 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   margin-top: 1rem;
   font-size: 0.86rem;
 }
+
+/* Travel Theme Presets Grid */
+.theme-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+@media (max-width: 768px) {
+  .theme-presets-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.theme-preset-card {
+  border: 2px solid var(--admin-border);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.4rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.theme-preset-card:hover {
+  border-color: var(--admin-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+.theme-preset-card.active {
+  border-color: var(--admin-accent);
+  background: #fffcf9;
+  box-shadow: 0 0 0 3px rgba(215, 109, 46, 0.15), 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.theme-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+  gap: 0.5rem;
+}
+.theme-ref-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--admin-text-muted);
+  background: #f1f5f9;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+}
+.theme-badge-applied {
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: #15803d;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+}
+.theme-card-title {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #111412;
+  margin-bottom: 0.35rem;
+}
+.theme-card-desc {
+  font-size: 0.82rem;
+  color: var(--admin-text-muted);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  flex-grow: 1;
+}
+.theme-swatches {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+}
+.theme-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+.btn-theme-apply {
+  width: 100%;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  border: 1.5px solid var(--admin-border);
+  background: #f8fafc;
+  color: #111412;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.theme-preset-card:hover .btn-theme-apply {
+  background: var(--admin-accent);
+  color: #ffffff;
+  border-color: var(--admin-accent);
+}
+.btn-theme-apply.applied {
+  background: #15803d !important;
+  color: #ffffff !important;
+  border-color: #15803d !important;
+}

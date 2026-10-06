@@ -84,10 +84,35 @@ function applyDynamicBackground(s) {
   }
 }
 
+// Apply active travel brand theme
+function applyTheme(themeName) {
+  const validThemes = ['sahyadri-sanchara', 'indiahikes-alpine', 'rainforest-emerald', 'zostel-nomad'];
+  const activeTheme = validThemes.includes(themeName) ? themeName : 'sahyadri-sanchara';
+  document.documentElement.setAttribute('data-theme', activeTheme);
+
+  // Update browser mobile header theme-color
+  let metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (!metaTheme) {
+    metaTheme = document.createElement('meta');
+    metaTheme.name = 'theme-color';
+    document.head.appendChild(metaTheme);
+  }
+  const themeColors = {
+    'sahyadri-sanchara': '#b91c1c',
+    'indiahikes-alpine': '#ea580c',
+    'rainforest-emerald': '#059669',
+    'zostel-nomad': '#e11d48'
+  };
+  metaTheme.content = themeColors[activeTheme] || '#b91c1c';
+}
+
 // Load public settings
 async function loadSettings() {
   try {
     siteSettings = await api('/api/settings');
+
+    // Apply travel brand theme preset
+    applyTheme(siteSettings.site_theme || 'sahyadri-sanchara');
 
     // Apply dynamic background theme (Color, Image, Opacity)
     applyDynamicBackground(siteSettings);
