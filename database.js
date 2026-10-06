@@ -181,7 +181,7 @@ const defaultSettings = {
   announcement_text: 'Monsoon & Post-Monsoon Sahyadri Batches: Booking open for upcoming Saturday & Sunday trails!',
   announcement_link_text: 'Groups of 6+? Custom Trek →',
   announcement_link_url: '#custom-trek',
-  hero_bg_image: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg',
+  hero_bg_image: '/uploads/harishchandragad-cover.jpg',
   hero_bg_opacity: '70',
   site_theme: 'sahyadri-sanchara',
   terms_conditions: `1. Trek Participation & Safety:

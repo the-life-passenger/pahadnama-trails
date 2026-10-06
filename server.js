@@ -588,7 +588,7 @@ app.get('/api/admin/overview', requireAdmin, (req, res) => {
 // Treks management: GET all treks for admin
 app.get('/api/admin/treks', requireAdmin, (req, res) => {
   try {
-    const rows = db.prepare('SELECT * FROM treks ORDER BY id DESC').all();
+    const rows = db.prepare('SELECT * FROM treks ORDER BY id ASC').all();
     res.json(rows.map(formatTrek));
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch admin treks' });
@@ -685,7 +685,7 @@ app.put('/api/admin/treks/:id', requireAdmin, (req, res) => {
       b.season !== undefined ? b.season : existing.season,
       b.price !== undefined ? parseInt(b.price) : existing.price,
       b.original_price !== undefined ? parseInt(b.original_price) : existing.original_price,
-      b.cover_photo !== undefined ? b.cover_photo : existing.cover_photo,
+      (b.cover_photo !== undefined && b.cover_photo.trim() !== '') ? b.cover_photo.trim() : existing.cover_photo,
       b.short_description !== undefined ? b.short_description : existing.short_description,
       b.description !== undefined ? b.description : existing.description,
       b.highlights !== undefined ? JSON.stringify(Array.isArray(b.highlights) ? b.highlights : b.highlights.split('\n').filter(Boolean)) : existing.highlights,

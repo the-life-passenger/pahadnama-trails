@@ -1,7 +1,9 @@
 /**
  * Pahadnama Trails ? Admin Control Center Logic
  */
-let currentTab = 'overview';
+let currentTab = (function() {
+  try { return sessionStorage.getItem('admin_active_tab') || 'overview'; } catch (e) { return 'overview'; }
+})();
 let activeTrekList = [];
 
 function esc(s) {
@@ -156,6 +158,7 @@ document.querySelectorAll('.mobile-tab-pill').forEach(pill => {
 
 async function loadTab(tab) {
   currentTab = tab;
+  try { sessionStorage.setItem('admin_active_tab', tab); } catch (e) {}
   toggleAdminMobileMenu(false);
 
   // Sync sidebar active status
@@ -425,6 +428,26 @@ function openTrekFormModal(t) {
         <div class="admin-form-group full-width" style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1.5px dashed var(--admin-border);margin-top:0.75rem">
           <div style="margin-bottom:0.75rem">
             <label style="font-weight:700;font-size:0.95rem;color:var(--admin-text);margin-bottom:0.15rem;display:flex;align-items:center;gap:0.4rem">
+              <span>🖼️</span> Trek Cover Photo
+            </label>
+            <small style="color:var(--admin-text-muted)">The main highlight photo shown on homepage trek cards and modal headers.</small>
+          </div>
+          <div style="display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap">
+            <div style="flex-shrink:0">
+              <img id="trekCoverPreviewImg" src="${esc(t && t.cover_photo ? t.cover_photo : '/brand/pahadnama-logo.png')}" alt="Cover Preview" style="width:140px;height:95px;object-fit:cover;border-radius:6px;border:1.5px solid var(--admin-border);box-shadow:0 1px 3px rgba(0,0,0,0.1)">
+            </div>
+            <div style="flex:1;min-width:240px">
+              <label style="font-size:0.8rem;color:var(--admin-text-muted);margin-bottom:0.3rem">Upload New Cover Image (JPG, PNG, WebP)</label>
+              <input type="file" id="trekCoverFileInput" accept="image/*" onchange="previewTrekCoverFile(this)" style="font-size:0.85rem;margin-bottom:0.5rem">
+              <label style="font-size:0.8rem;color:var(--admin-text-muted);margin-bottom:0.3rem">Or Direct Image URL / Path</label>
+              <input type="text" name="cover_photo" id="trekCoverUrlInput" value="${esc(t ? (t.cover_photo || '') : '')}" placeholder="/uploads/... or https://..." oninput="document.getElementById('trekCoverPreviewImg').src = this.value || '/brand/pahadnama-logo.png'">
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-form-group full-width" style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1.5px dashed var(--admin-border);margin-top:0.75rem">
+          <div style="margin-bottom:0.75rem">
+            <label style="font-weight:700;font-size:0.95rem;color:var(--admin-text);margin-bottom:0.15rem;display:flex;align-items:center;gap:0.4rem">
               <span>📄</span> Trek Voucher / PDF Brochure / Itinerary Document
             </label>
             <small style="color:var(--admin-text-muted)">Upload a PDF brochure, route guide, or voucher for trekkers to download from the trek details modal.</small>
@@ -470,6 +493,17 @@ function openTrekFormModal(t) {
   modal.classList.add('open');
 }
 
+function previewTrekCoverFile(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const prev = document.getElementById('trekCoverPreviewImg');
+      if (prev) prev.src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
 async function handleSaveTrek(e, id) {
   e.preventDefault();
   const form = e.target;
@@ -492,6 +526,18 @@ async function handleSaveTrek(e, id) {
       });
       savedTrekId = created ? created.id : null;
       showToast('New trek created!');
+    }
+
+    // Check if a cover photo file was chosen to upload
+    const coverInput = document.getElementById('trekCoverFileInput');
+    if (coverInput && coverInput.files && coverInput.files.length > 0 && savedTrekId) {
+      const coverData = new FormData();
+      coverData.append('cover', coverInput.files[0]);
+      await fetch(`/api/admin/treks/${savedTrekId}/cover`, {
+        method: 'POST',
+        credentials: 'include',
+        body: coverData
+      });
     }
 
     // Check if a document file was chosen to upload
@@ -843,8 +889,12 @@ async function renderPhotosTab(preselectTrekId = null) {
   try {
     const treks = await adminApi('/api/admin/treks');
     if (!treks.length) { content.innerHTML = '<p>Add a trek first.</p>'; return; }
-    const selectedTrekId = preselectTrekId || treks[0].id;
-    const currentTrek = treks.find(t => t.id === selectedTrekId) || treks[0];
+
+    let savedTrekId = null;
+    try { savedTrekId = parseInt(sessionStorage.getItem('admin_selected_photo_trek_id')); } catch (e) {}
+    const targetId = preselectTrekId || (savedTrekId && treks.some(t => t.id === savedTrekId) ? savedTrekId : null) || treks[0].id;
+    const currentTrek = treks.find(t => t.id === targetId) || treks[0];
+    try { sessionStorage.setItem('admin_selected_photo_trek_id', currentTrek.id); } catch (e) {}
 
     content.innerHTML = `
       <div class="admin-panel">
@@ -852,7 +902,7 @@ async function renderPhotosTab(preselectTrekId = null) {
           <h3>Genuine Trek Photos &amp; Gallery</h3>
           <div style="display:flex;align-items:center;gap:0.75rem">
             <label style="font-weight:700">Select Trek:</label>
-            <select id="photoTrekSelector" onchange="renderPhotosTab(parseInt(this.value))" style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--admin-border)">
+            <select id="photoTrekSelector" onchange="try{sessionStorage.setItem('admin_selected_photo_trek_id', this.value);}catch(e){} renderPhotosTab(parseInt(this.value))" style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--admin-border)">
               ${treks.map(t => `<option value="${t.id}" ${t.id === currentTrek.id ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}
             </select>
           </div>
@@ -896,6 +946,7 @@ async function renderPhotosTab(preselectTrekId = null) {
 }
 
 function openPhotosForTrek(id) {
+  try { sessionStorage.setItem('admin_selected_photo_trek_id', id); } catch (e) {}
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
   document.querySelector('[data-tab="photos"]').classList.add('active');
   renderPhotosTab(id);

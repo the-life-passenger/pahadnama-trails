@@ -270,12 +270,23 @@ function renderTreks(filter = 'all') {
   if (!grid) return;
 
   let filtered = allTreks;
-  if (filter === 'Beginner Friendly') {
-    filtered = allTreks.filter(t => t.difficulty.toLowerCase().includes('easy'));
-  } else if (filter === 'Moderate') {
-    filtered = allTreks.filter(t => t.difficulty.toLowerCase().includes('moderate'));
-  } else if (filter === 'Thrilling') {
-    filtered = allTreks.filter(t => t.difficulty.toLowerCase().includes('hard') || t.difficulty.toLowerCase().includes('thrill'));
+  const f = (filter || 'all').toLowerCase();
+  if (f === 'beginner' || f === 'beginner friendly' || f === 'easy to moderate') {
+    filtered = allTreks.filter(t => {
+      const diff = (t.difficulty || '').toLowerCase();
+      return diff.includes('easy');
+    });
+  } else if (f === 'moderate' || f === 'moderate forts') {
+    filtered = allTreks.filter(t => {
+      const diff = (t.difficulty || '').toLowerCase();
+      return diff.includes('moderate') && !diff.includes('easy');
+    });
+  } else if (f === 'summit-thrill' || f === 'thrilling' || f === 'summit & thrill' || f === 'summit &amp; thrill') {
+    filtered = allTreks.filter(t => {
+      const diff = (t.difficulty || '').toLowerCase();
+      const name = (t.name || '').toLowerCase();
+      return diff.includes('thrill') || diff.includes('hard') || name.includes('peak') || name.includes('kalsubai') || name.includes('everest') || name.includes('harishchandragad') || name.includes('kokankada');
+    });
   }
 
   if (!filtered.length) {
