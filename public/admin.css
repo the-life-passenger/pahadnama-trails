@@ -1,14 +1,15 @@
-/* Pahadnama Trails Admin Dashboard CSS */
+/* Pahadnama Trails Admin Dashboard CSS — Executive Black & White Theme */
 :root {
-  --admin-bg: #f4f6f8;
-  --admin-sidebar: #131c17;
-  --admin-sidebar-hover: #1f2d25;
-  --admin-accent: #d76d2e;
-  --admin-accent-hover: #bd591e;
-  --admin-text-main: #191f1b;
-  --admin-text-muted: #64748b;
+  --admin-bg: #f8f9fa;
+  --admin-sidebar: #09090b;
+  --admin-sidebar-hover: #18181b;
+  --admin-sidebar-border: #27272a;
+  --admin-accent: #09090b;
+  --admin-accent-hover: #27272a;
+  --admin-text-main: #09090b;
+  --admin-text-muted: #71717a;
   --admin-card: #ffffff;
-  --admin-border: #e2e8f0;
+  --admin-border: #e4e4e7;
   --admin-success: #16a34a;
   --admin-danger: #dc2626;
   --admin-warning: #d97706;
@@ -23,16 +24,14 @@ a { text-decoration: none; color: inherit; }
 button { font-family: inherit; border: none; background: none; cursor: pointer; }
 .hidden { display: none !important; }
 
-/* Login Screen */
+/* Login Screen — Executive Obsidian Black */
 .admin-login-screen {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  background: radial-gradient(circle at 50% 15%, rgba(215, 109, 46, 0.12) 0%, transparent 60%),
-              radial-gradient(circle at 85% 85%, rgba(27, 56, 43, 0.4) 0%, transparent 50%),
-              #0a140e;
+  background: radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.06) 0%, transparent 60%), #09090b;
   padding: 2rem 1.5rem;
   overflow: hidden;
 }
@@ -41,27 +40,27 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   position: absolute;
   width: 520px;
   height: 520px;
-  background: radial-gradient(circle, rgba(215, 109, 46, 0.15) 0%, rgba(27, 56, 43, 0.06) 50%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  filter: blur(40px);
+  filter: blur(50px);
 }
 
 .login-card {
   position: relative;
   z-index: 2;
-  background: rgba(16, 29, 21, 0.9);
+  background: #111114;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
   padding: 3rem 2.5rem;
   width: 100%;
   max-width: 440px;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(215, 109, 46, 0.1);
-  color: #f1f5f3;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+  color: #f4f4f5;
 }
 
 .login-brand {
@@ -80,8 +79,8 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   height: 76px;
   border-radius: 16px;
   object-fit: cover;
-  background-color: #1e2c22;
-  border: 2px solid rgba(215, 109, 46, 0.5);
+  background-color: #18181b;
+  border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   display: block;
 }
@@ -102,15 +101,16 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  background: linear-gradient(135deg, var(--admin-accent) 0%, #b8541c 100%);
+  background: #27272a;
   color: #ffffff;
   padding: 0.25rem 0.6rem;
   border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .login-brand p {
   font-size: 0.86rem;
-  color: #9eb1a5;
+  color: #a1a1aa;
   margin-top: 0.35rem;
 }
 
@@ -141,7 +141,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #a0b3a7;
+  color: #a1a1aa;
   margin-bottom: 0.45rem;
 }
 
@@ -154,14 +154,14 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .field-icon {
   position: absolute;
   left: 1rem;
-  color: #6d8477;
+  color: #71717a;
   pointer-events: none;
 }
 
 .login-card input[type="text"],
 .login-card input[type="password"] {
   width: 100%;
-  background: rgba(9, 18, 13, 0.75);
+  background: #18181b;
   border: 1.5px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
   color: #ffffff;
@@ -177,13 +177,13 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 
 .login-card input:focus {
   outline: none;
-  border-color: var(--admin-accent);
-  background: rgba(9, 18, 13, 0.95);
-  box-shadow: 0 0 0 3px rgba(215, 109, 46, 0.22);
+  border-color: #ffffff;
+  background: #27272a;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
 }
 
 .login-card input::placeholder {
-  color: #556c5f;
+  color: #71717a;
   font-size: 0.88rem;
 }
 
@@ -193,7 +193,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   width: 34px;
   height: 34px;
   border-radius: 6px;
-  color: #8fa498;
+  color: #a1a1aa;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -212,21 +212,22 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   width: 100%;
   padding: 0.9rem;
   font-size: 0.98rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.02em;
   border-radius: 10px;
   justify-content: center;
-  background: linear-gradient(135deg, var(--admin-accent) 0%, #b8541c 100%);
-  color: #ffffff;
-  box-shadow: 0 8px 24px rgba(215, 109, 46, 0.35);
+  background: #ffffff;
+  color: #09090b;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
   transition: all 0.2s ease;
   margin-top: 0.5rem;
+  border: none;
 }
 
 .login-card .btn-admin-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(215, 109, 46, 0.45);
-  filter: brightness(1.05);
+  background: #e4e4e7;
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.25);
 }
 
 .login-security-notice {
@@ -236,11 +237,11 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   gap: 0.5rem;
   margin-top: 1.6rem;
   font-size: 0.78rem;
-  color: #798f82;
+  color: #71717a;
 }
 
 .login-security-notice svg {
-  stroke: #798f82;
+  stroke: #71717a;
   flex-shrink: 0;
 }
 
@@ -249,22 +250,22 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 .admin-sidebar {
   width: 260px;
   background-color: var(--admin-sidebar);
-  color: #cbd5e1;
+  color: #a1a1aa;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid var(--admin-sidebar-border);
 }
 .sidebar-header {
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--admin-sidebar-border);
 }
 .admin-nav-logo { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.2); }
 .admin-nav-title { font-family: var(--font-heading); font-size: 1.05rem; font-weight: 800; color: #ffffff; letter-spacing: 0.05em; }
-.admin-nav-sub { font-size: 0.65rem; color: var(--admin-accent); font-weight: 700; letter-spacing: 0.1em; }
+.admin-nav-sub { font-size: 0.65rem; color: #a1a1aa; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 
 .admin-nav { padding: 1.2rem 0.75rem; display: flex; flex-direction: column; gap: 0.35rem; flex-grow: 1; }
 .nav-item {
@@ -272,7 +273,7 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   align-items: center;
   gap: 0.85rem;
   padding: 0.75rem 1rem;
-  color: #94a3b8;
+  color: #a1a1aa;
   font-size: 0.92rem;
   font-weight: 600;
   border-radius: 8px;
@@ -281,12 +282,13 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   text-align: left;
 }
 .nav-item:hover { background-color: var(--admin-sidebar-hover); color: #ffffff; }
-.nav-item.active { background-color: var(--admin-accent); color: #ffffff; }
+.nav-item.active { background-color: #ffffff; color: #09090b; font-weight: 700; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
+.nav-item.active svg { stroke: #09090b; }
 .badge-count { margin-left: auto; background: var(--admin-danger); color: #fff; font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 999px; }
 
-.sidebar-footer { padding: 1.2rem; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; gap: 0.6rem; }
-.sidebar-action-btn { font-size: 0.82rem; color: #38bdf8; font-weight: 600; display: block; text-align: center; padding: 0.5rem; border-radius: 6px; background: rgba(56, 189, 248, 0.1); }
-.sidebar-action-btn:hover { background: rgba(56, 189, 248, 0.2); }
+.sidebar-footer { padding: 1.2rem; border-top: 1px solid var(--admin-sidebar-border); display: flex; flex-direction: column; gap: 0.6rem; }
+.sidebar-action-btn { font-size: 0.82rem; color: #f4f4f5; font-weight: 600; display: block; text-align: center; padding: 0.5rem; border-radius: 6px; background: #18181b; border: 1px solid #27272a; }
+.sidebar-action-btn:hover { background: #27272a; color: #ffffff; }
 .sidebar-logout-btn { color: #f87171; font-size: 0.85rem; text-align: center; padding: 0.4rem; border-radius: 6px; }
 .sidebar-logout-btn:hover { background: rgba(239, 68, 68, 0.15); }
 
@@ -307,14 +309,14 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   align-items: center;
   justify-content: space-between;
 }
-.topbar-subtitle { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; color: var(--admin-accent); }
-.topbar-title { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: #111412; }
+.topbar-subtitle { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; color: var(--admin-text-muted); text-transform: uppercase; }
+.topbar-title { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: #09090b; }
 
 .admin-container { padding: 2rem 2.5rem; max-width: 1400px; }
 
 /* Admin Buttons */
 .btn-admin-primary {
-  background-color: var(--admin-accent);
+  background-color: #09090b;
   color: #ffffff;
   padding: 0.65rem 1.2rem;
   border-radius: 8px;
@@ -324,14 +326,15 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  border: 1px solid #09090b;
 }
-.btn-admin-primary:hover { background-color: var(--admin-accent-hover); transform: translateY(-1px); }
+.btn-admin-primary:hover { background-color: #27272a; border-color: #27272a; transform: translateY(-1px); }
 .btn-admin-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; }
-.btn-admin-outline { border: 1px solid var(--admin-border); background: #ffffff; color: var(--admin-text-main); }
-.btn-admin-outline:hover { border-color: var(--admin-text-main); }
-.btn-admin-danger { background: #fee2e2; color: var(--admin-danger); }
+.btn-admin-outline { border: 1.5px solid var(--admin-border); background: #ffffff; color: #09090b; font-weight: 600; }
+.btn-admin-outline:hover { border-color: #09090b; background: #fafafa; }
+.btn-admin-danger { background: #fee2e2; color: var(--admin-danger); border: 1px solid #fecaca; }
 .btn-admin-danger:hover { background: #fecaca; }
-.btn-admin-success { background: #dcfce7; color: var(--admin-success); }
+.btn-admin-success { background: #dcfce7; color: var(--admin-success); border: 1px solid #bbf7d0; }
 .btn-admin-success:hover { background: #bbf7d0; }
 
 /* Dashboard Metric Cards */
@@ -634,10 +637,10 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
     color: #111412;
   }
   .mobile-tab-pill.active {
-    background: var(--admin-accent);
+    background: #09090b;
     color: #ffffff;
-    border-color: var(--admin-accent);
-    box-shadow: 0 2px 8px rgba(215, 109, 46, 0.3);
+    border-color: #09090b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
   /* Admin Content Container */
@@ -1021,9 +1024,9 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 .theme-preset-card.active {
-  border-color: var(--admin-accent);
-  background: #fffcf9;
-  box-shadow: 0 0 0 3px rgba(215, 109, 46, 0.15), 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: #09090b;
+  background: #ffffff;
+  box-shadow: 0 0 0 2px #09090b, 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 .theme-card-top {
   display: flex;

@@ -879,6 +879,22 @@ app.delete('/api/admin/dates/:id', requireAdmin, (req, res) => {
   }
 });
 
+// Public FAQs endpoint
+app.get('/api/faqs', (req, res) => {
+  try {
+    const trekId = req.query.trek_id;
+    let rows;
+    if (trekId) {
+      rows = db.prepare('SELECT * FROM faqs WHERE trek_id = ? ORDER BY order_num ASC, id ASC').all(trekId);
+    } else {
+      rows = db.prepare('SELECT * FROM faqs ORDER BY order_num ASC, id ASC').all();
+    }
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch FAQs' });
+  }
+});
+
 // FAQ management: Add FAQ
 app.post('/api/admin/faqs', requireAdmin, (req, res) => {
   try {
@@ -1100,18 +1116,94 @@ app.post('/api/admin/settings/hero-background', requireAdmin, upload.single('her
     if (!req.file) return res.status(400).json({ error: 'No hero background image uploaded' });
     const heroUrl = `/uploads/${req.file.filename}`;
     db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_image', heroUrl);
-    res.json({ ok: true, hero_bg_image: heroUrl, message: 'Hero background image uploaded successfully' });
+
+    const existingRow = db.prepare("SELECT value FROM settings WHERE key = 'hero_bg_images'").get();
+    let list = existingRow ? parseJson(existingRow.value, []) : [];
+    if (!list.includes(heroUrl)) list.unshift(heroUrl);
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_images', JSON.stringify(list));
+
+    res.json({ ok: true, hero_bg_image: heroUrl, hero_bg_images: list, message: 'Hero background image uploaded successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to upload hero background image: ' + err.message });
   }
 });
 
-// Settings management: Remove / Reset Hero Section Background Image
+// Settings management: Upload Multiple Hero Section Background Photos
+app.post('/api/admin/settings/hero-photos', requireAdmin, upload.array('hero_photos', 15), (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No hero images uploaded' });
+    const existingRow = db.prepare("SELECT value FROM settings WHERE key = 'hero_bg_images'").get();
+    let list = existingRow ? parseJson(existingRow.value, []) : [];
+
+    req.files.forEach(f => {
+      const url = `/uploads/${f.filename}`;
+      if (!list.includes(url)) list.push(url);
+    });
+
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_images', JSON.stringify(list));
+    if (list.length > 0) {
+      db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_image', list[0]);
+    }
+    res.json({ ok: true, hero_bg_images: list, message: `${req.files.length} hero background photo(s) added successfully` });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to upload hero photos: ' + err.message });
+  }
+});
+
+// Settings management: Add Direct URL to Hero Photos
+app.post('/api/admin/settings/hero-photos/add-url', requireAdmin, (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url || !url.trim()) return res.status(400).json({ error: 'Image URL is required' });
+    const cleanUrl = url.trim();
+    const existingRow = db.prepare("SELECT value FROM settings WHERE key = 'hero_bg_images'").get();
+    let list = existingRow ? parseJson(existingRow.value, []) : [];
+
+    if (!list.includes(cleanUrl)) list.push(cleanUrl);
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_images', JSON.stringify(list));
+    if (list.length > 0) {
+      db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_image', list[0]);
+    }
+    res.json({ ok: true, hero_bg_images: list, message: 'Hero photo URL added successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to add hero photo URL: ' + err.message });
+  }
+});
+
+// Settings management: Delete single photo from Hero Photos
+app.delete('/api/admin/settings/hero-photos', requireAdmin, (req, res) => {
+  try {
+    const url = req.body.url || req.query.url;
+    if (!url) return res.status(400).json({ error: 'Photo URL is required' });
+    const existingRow = db.prepare("SELECT value FROM settings WHERE key = 'hero_bg_images'").get();
+    let list = existingRow ? parseJson(existingRow.value, []) : [];
+
+    list = list.filter(item => item !== url);
+    if (list.length === 0) {
+      list = ['/uploads/harishchandragad-cover.jpg'];
+    }
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_images', JSON.stringify(list));
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_image', list[0]);
+    res.json({ ok: true, hero_bg_images: list, message: 'Hero photo removed successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to remove hero photo: ' + err.message });
+  }
+});
+
+// Settings management: Remove / Reset Hero Section Background Images to Defaults
 app.delete('/api/admin/settings/hero-background', requireAdmin, (req, res) => {
   try {
-    const defaultHero = 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg';
-    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_image', defaultHero);
-    res.json({ ok: true, hero_bg_image: defaultHero, message: 'Hero background reset to default' });
+    const defaults = [
+      '/uploads/harishchandragad-cover.jpg',
+      '/uploads/kalsubai-cover.jpg',
+      '/uploads/devkund-cover.jpg',
+      '/uploads/rajgad-cover.jpg',
+      '/uploads/jivdhan-cover.jpg',
+      '/uploads/bhaskargad-cover.jpg'
+    ];
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_images', JSON.stringify(defaults));
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('hero_bg_image', defaults[0]);
+    res.json({ ok: true, hero_bg_images: defaults, hero_bg_image: defaults[0], message: 'Hero photos reset to defaults' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to reset hero background: ' + err.message });
   }

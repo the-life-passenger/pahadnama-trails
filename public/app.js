@@ -159,22 +159,103 @@ async function loadSettings() {
       }
     }
 
-    // Dynamic Hero Section Background & Transparency / Opacity
-    const heroLayer = document.getElementById('heroImageLayer');
-    if (heroLayer) {
-      if (siteSettings.hero_bg_image) {
-        heroLayer.style.backgroundImage = `url('${siteSettings.hero_bg_image}')`;
-      }
-      if (siteSettings.hero_bg_opacity !== undefined && siteSettings.hero_bg_opacity !== null && siteSettings.hero_bg_opacity !== '') {
-        const opVal = parseInt(siteSettings.hero_bg_opacity, 10);
-        if (!isNaN(opVal)) {
-          heroLayer.style.opacity = (Math.min(100, Math.max(0, opVal)) / 100).toString();
-        }
-      }
-    }
+    // Dynamic Continuous Hero Slideshow & Opacity
+    setupHeroSlideshow(siteSettings);
   } catch (e) {
     console.warn('Could not fetch settings:', e);
   }
+}
+
+let heroSlideshowTimer = null;
+function setupHeroSlideshow(settings) {
+  if (heroSlideshowTimer) {
+    clearInterval(heroSlideshowTimer);
+    heroSlideshowTimer = null;
+  }
+
+  const slideA = document.getElementById('heroSlideA');
+  const slideB = document.getElementById('heroSlideB');
+  const backdrop = document.getElementById('heroBackdrop');
+  if (!slideA && !slideB) {
+    // Fallback if legacy single element is present
+    const legacyLayer = document.getElementById('heroImageLayer');
+    if (legacyLayer && settings && settings.hero_bg_image) {
+      legacyLayer.style.backgroundImage = `url('${settings.hero_bg_image}')`;
+    }
+    return;
+  }
+
+  // Apply Hero Opacity / Transparency
+  let opacityVal = 0.72; // default 72%
+  if (settings && settings.hero_bg_opacity !== undefined && settings.hero_bg_opacity !== null && settings.hero_bg_opacity !== '') {
+    const parsed = parseInt(settings.hero_bg_opacity, 10);
+    if (!isNaN(parsed)) opacityVal = Math.min(100, Math.max(0, parsed)) / 100;
+  }
+  if (backdrop) backdrop.style.opacity = opacityVal.toString();
+
+  // Parse list of hero background photos
+  let images = [];
+  if (settings && settings.hero_bg_images) {
+    try {
+      const parsedImgs = typeof settings.hero_bg_images === 'string' ? JSON.parse(settings.hero_bg_images) : settings.hero_bg_images;
+      if (Array.isArray(parsedImgs) && parsedImgs.length > 0) {
+        images = parsedImgs.filter(Boolean);
+      }
+    } catch (e) {}
+  }
+  if (!images.length && settings && settings.hero_bg_image) {
+    images = [settings.hero_bg_image];
+  }
+  if (!images.length) {
+    images = [
+      '/uploads/harishchandragad-cover.jpg',
+      '/uploads/kalsubai-cover.jpg',
+      '/uploads/devkund-cover.jpg',
+      '/uploads/rajgad-cover.jpg',
+      '/uploads/jivdhan-cover.jpg',
+      '/uploads/bhaskargad-cover.jpg'
+    ];
+  }
+
+  // Preload all hero images into browser cache for instantaneous transitions
+  images.forEach(src => {
+    const img = new Image();
+    img.src = src;
+  });
+
+  // Set initial image on slideA
+  if (slideA) {
+    slideA.style.backgroundImage = `url('${images[0]}')`;
+    slideA.classList.add('active');
+  }
+  if (slideB) {
+    slideB.classList.remove('active');
+  }
+
+  if (images.length <= 1) return;
+
+  let currentIndex = 0;
+  let activeSlide = slideA;
+  let inactiveSlide = slideB;
+
+  // Continuous smooth cross-fade loop
+  heroSlideshowTimer = setInterval(() => {
+    currentIndex = (currentIndex + 1) % images.length;
+    const nextImg = images[currentIndex];
+
+    if (inactiveSlide) {
+      inactiveSlide.style.backgroundImage = `url('${nextImg}')`;
+      inactiveSlide.classList.add('active');
+    }
+    if (activeSlide) {
+      activeSlide.classList.remove('active');
+    }
+
+    // Swap slide references
+    const temp = activeSlide;
+    activeSlide = inactiveSlide;
+    inactiveSlide = temp;
+  }, 5000); // Cross-fades smoothly every 5 seconds
 }
 
 // Setup navigation drawer

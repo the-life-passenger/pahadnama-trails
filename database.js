@@ -182,6 +182,14 @@ const defaultSettings = {
   announcement_link_text: 'Groups of 6+? Custom Trek →',
   announcement_link_url: '#custom-trek',
   hero_bg_image: '/uploads/harishchandragad-cover.jpg',
+  hero_bg_images: JSON.stringify([
+    '/uploads/harishchandragad-cover.jpg',
+    '/uploads/kalsubai-cover.jpg',
+    '/uploads/devkund-cover.jpg',
+    '/uploads/rajgad-cover.jpg',
+    '/uploads/jivdhan-cover.jpg',
+    '/uploads/bhaskargad-cover.jpg'
+  ]),
   hero_bg_opacity: '70',
   site_theme: 'sahyadri-sanchara',
   terms_conditions: `1. Trek Participation & Safety:

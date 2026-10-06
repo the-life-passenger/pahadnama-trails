@@ -1373,6 +1373,28 @@ async function renderSettingsTab() {
   try {
     const s = await adminApi('/api/admin/settings');
     const activeTheme = s.site_theme || 'sahyadri-sanchara';
+
+    let heroImgsList = [];
+    if (s.hero_bg_images) {
+      try {
+        const parsed = typeof s.hero_bg_images === 'string' ? JSON.parse(s.hero_bg_images) : s.hero_bg_images;
+        if (Array.isArray(parsed)) heroImgsList = parsed.filter(Boolean);
+      } catch (e) {}
+    }
+    if (!heroImgsList.length && s.hero_bg_image) {
+      heroImgsList = [s.hero_bg_image];
+    }
+    if (!heroImgsList.length) {
+      heroImgsList = [
+        '/uploads/harishchandragad-cover.jpg',
+        '/uploads/kalsubai-cover.jpg',
+        '/uploads/devkund-cover.jpg',
+        '/uploads/rajgad-cover.jpg',
+        '/uploads/jivdhan-cover.jpg',
+        '/uploads/bhaskargad-cover.jpg'
+      ];
+    }
+
     content.innerHTML = `
       <!-- TOP MASTER ACTION BAR -->
       <div class="settings-top-bar" style="max-width:800px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;background:var(--admin-bg-subtle,#f8fafc);padding:1.15rem 1.4rem;border-radius:12px;border:1.5px solid var(--admin-border,#e2e8f0);margin-bottom:1.5rem;box-shadow:0 2px 6px rgba(0,0,0,0.03)">
@@ -1608,26 +1630,35 @@ async function renderSettingsTab() {
         </form>
       </div>
 
-      <!-- HERO SECTION MOUNTAIN BACKGROUND PHOTO SETTINGS -->
+      <!-- HERO SECTION MOUNTAIN BACKGROUND PHOTO SETTINGS (CONTINUOUS SLIDESHOW) -->
       <div class="admin-panel" style="max-width:800px;margin-bottom:2rem">
         <div class="admin-panel-head">
           <div>
-            <h3>🌄 Hero Section Mountain Background Photo (Homepage Banner)</h3>
-            <small style="color:var(--admin-text-muted)">Change the big mountain photo shown on the homepage header (behind the Maharashtra Sahyadri Treks title).</small>
+            <h3>🌄 Hero Background Photos &amp; Continuous Slideshow</h3>
+            <small style="color:var(--admin-text-muted)">Upload multiple photos for the homepage hero background. Photos change continuously and smoothly with dynamic cross-fading.</small>
           </div>
+          <span class="table-badge active" id="heroSlidesCountBadge">${heroImgsList.length} Photos in Loop</span>
         </div>
 
+        <!-- Slideshow Photos Grid -->
         <div style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.5rem">
-          <label style="font-weight:700;display:block;margin-bottom:0.5rem">Current Active Hero Background Photo</label>
-          <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
-            <div style="position:relative;background:#0f172a;border-radius:8px;overflow:hidden;border:1.5px solid var(--admin-border);box-shadow:0 2px 8px rgba(0,0,0,0.1)">
-              <img id="heroPreviewImg" src="${esc(s.hero_bg_image || 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg')}" alt="Hero Background Preview" style="width:220px;height:120px;object-fit:cover;display:block;opacity:${(parseInt(s.hero_bg_opacity || '70', 10) / 100).toFixed(2)};transition:opacity 0.2s ease">
-            </div>
-            <div style="flex:1;min-width:220px">
-              <code id="heroActiveUrlCode" style="display:block;font-size:0.8rem;word-break:break-all;color:var(--admin-accent);margin-bottom:0.4rem">${esc(s.hero_bg_image || 'Default Sahyadri Wallpaper')}</code>
-              <div style="font-size:0.82rem;color:var(--admin-text-muted);margin-bottom:0.6rem">Current Visibility / Opacity: <strong id="heroCurrentOpLabel" style="color:var(--admin-accent)">${esc(s.hero_bg_opacity || '70')}%</strong></div>
-              <button type="button" class="btn-admin-danger btn-admin-sm" onclick="handleRemoveHeroBgImage()">🔄 Reset to Default Photo</button>
-            </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem">
+            <label style="font-weight:700;margin:0">Active Hero Photos in Rotation (${heroImgsList.length})</label>
+            <button type="button" class="btn-admin-danger btn-admin-sm" onclick="handleResetHeroPhotos()">🔄 Reset to Curated 6 Sahyadri Photos</button>
+          </div>
+          <div id="heroPhotosGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:0.9rem">
+            ${heroImgsList.map((imgUrl, idx) => `
+              <div class="hero-photo-card" style="background:#fff;border:1.5px solid var(--admin-border);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.05);position:relative">
+                <div style="position:relative;height:105px;background:#09090b;overflow:hidden">
+                  <img src="${esc(imgUrl)}" style="width:100%;height:100%;object-fit:cover;opacity:${(parseInt(s.hero_bg_opacity || '70', 10) / 100).toFixed(2)};transition:opacity 0.2s ease" class="hero-thumb-img">
+                  <span style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.75);color:#fff;font-size:0.7rem;font-weight:700;padding:2px 6px;border-radius:4px;backdrop-filter:blur(4px)">Slide #${idx + 1}</span>
+                  <button type="button" onclick="handleDeleteHeroPhoto('${esc(imgUrl)}')" title="Remove this photo from slideshow" style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(220,38,38,0.9);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;box-shadow:0 2px 4px rgba(0,0,0,0.2)">&times;</button>
+                </div>
+                <div style="padding:0.5rem 0.6rem;font-size:0.72rem;color:var(--admin-text-muted);word-break:break-all;line-height:1.3;background:#fafafa;border-top:1px solid var(--admin-border)">
+                  ${esc(imgUrl.split('/').pop() || imgUrl)}
+                </div>
+              </div>
+            `).join('')}
           </div>
         </div>
 
@@ -1635,12 +1666,12 @@ async function renderSettingsTab() {
         <form id="settingsHeroOpacityForm" onsubmit="handleSaveHeroOpacity(event)" style="background:#fff;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.25rem">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem">
             <h4 style="font-size:0.95rem;font-weight:700;display:flex;align-items:center;gap:0.4rem">
-              <span>🎚️</span> Hero Photo Transparency / Visibility:
+              <span>🎚️</span> Hero Slideshow Transparency / Visibility:
               <strong id="heroBgOpacityVal" style="color:var(--admin-accent);font-size:1.15rem">${esc(s.hero_bg_opacity || '70')}%</strong>
             </h4>
           </div>
           <p style="font-size:0.82rem;color:var(--admin-text-muted);margin-bottom:0.85rem">
-            Adjust how transparent or prominent the mountain background photo appears on your homepage banner (0% = invisible/dark, 100% = full bright photo).
+            Adjust how transparent or prominent the mountain background photos appear behind homepage titles (0% = dark/subtle, 100% = full vivid brightness).
           </p>
 
           <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem">
@@ -1663,22 +1694,23 @@ async function renderSettingsTab() {
           </button>
         </form>
 
-        <form onsubmit="handleUploadHeroBgImage(event)" style="background:#fff;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.25rem">
-          <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:0.4rem">Option A: Upload New Hero Photo from Device</h4>
-          <p style="font-size:0.82rem;color:var(--admin-text-muted);margin-bottom:0.85rem">Upload a high-resolution landscape photo of Sahyadri mountains (.jpg, .png, .webp).</p>
+        <!-- Option A: Upload Multiple New Photos -->
+        <form onsubmit="handleUploadHeroPhotos(event)" style="background:#fff;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border);margin-bottom:1.25rem">
+          <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:0.3rem">Option A: Upload Multiple Photos for Hero Slideshow</h4>
+          <p style="font-size:0.82rem;color:var(--admin-text-muted);margin-bottom:0.85rem">Select multiple mountain photos from your computer (.jpg, .png, .webp). They will be added to the live continuous rotation.</p>
           <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
-            <input type="file" name="hero_image" accept="image/*" required style="font-size:0.9rem">
-            <button type="submit" class="btn-admin-primary">⬆️ Upload &amp; Apply Hero Photo</button>
+            <input type="file" name="hero_photos" accept="image/*" multiple required style="font-size:0.9rem">
+            <button type="submit" class="btn-admin-primary">⬆️ Add Photos to Slideshow</button>
           </div>
         </form>
 
-        <form id="settingsHeroUrlForm" onsubmit="handleSaveHeroBgUrl(event)" style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border)">
-          <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:0.4rem">Option B: Set Direct Image URL</h4>
-          <div class="admin-form-group">
-            <input type="text" name="hero_bg_image" id="heroBgImageUrlInput" value="${esc(s.hero_bg_image || '')}" placeholder="https://images.unsplash.com/... or /uploads/...">
-            <small>Paste any direct image link.</small>
+        <!-- Option B: Add Direct Image Link -->
+        <form onsubmit="handleAddHeroPhotoUrl(event)" style="background:#f8fafc;padding:1.25rem;border-radius:8px;border:1px solid var(--admin-border)">
+          <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:0.3rem">Option B: Add Photo via Direct URL</h4>
+          <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+            <input type="text" id="addHeroPhotoUrlInput" placeholder="/uploads/... or https://..." style="flex:1;min-width:240px">
+            <button type="submit" class="btn-admin-outline">Add URL to Slideshow</button>
           </div>
-          <button type="submit" class="btn-admin-primary">💾 Save Hero Image Link</button>
         </form>
       </div>
 
@@ -2381,69 +2413,68 @@ async function handleSaveAnnouncementSettings(e) {
   }
 }
 
-async function handleUploadHeroBgImage(e) {
+async function handleUploadHeroPhotos(e) {
   e.preventDefault();
   const form = e.target;
   const btn = form.querySelector('button[type="submit"]');
   const oldText = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Uploading...</span>'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Uploading Photos...</span>'; }
   const formData = new FormData(form);
   try {
-    const res = await fetch('/api/admin/settings/hero-background', {
+    const res = await fetch('/api/admin/settings/hero-photos', {
       method: 'POST',
       credentials: 'include',
       body: formData
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Upload failed');
-    const previewImg = document.getElementById('heroPreviewImg');
-    const urlLabel = document.getElementById('heroActiveUrlCode');
-    const urlInput = document.getElementById('heroBgImageUrlInput');
-    if (previewImg && data.hero_bg_image) previewImg.src = data.hero_bg_image;
-    if (urlLabel && data.hero_bg_image) urlLabel.textContent = data.hero_bg_image;
-    if (urlInput && data.hero_bg_image) urlInput.value = data.hero_bg_image;
     form.reset();
-    showToast('Hero background photo updated live!');
+    showToast(data.message || 'Hero photos added to slideshow!');
+    renderSettingsTab();
   } catch (err) { alert('Upload failed: ' + err.message); }
   finally { if (btn) { btn.disabled = false; btn.innerHTML = oldText; } }
 }
 
-async function handleRemoveHeroBgImage() {
-  if (!confirm('Reset hero background photo to default Sahyadri wallpaper?')) return;
+async function handleAddHeroPhotoUrl(e) {
+  e.preventDefault();
+  const input = document.getElementById('addHeroPhotoUrlInput');
+  const url = input ? input.value.trim() : '';
+  if (!url) {
+    alert('Please enter a photo URL or image path first.');
+    return;
+  }
   try {
-    const res = await adminApi('/api/admin/settings/hero-background', { method: 'DELETE' });
-    const defaultHero = res.hero_bg_image || 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg';
-    const previewImg = document.getElementById('heroPreviewImg');
-    const urlLabel = document.getElementById('heroActiveUrlCode');
-    const urlInput = document.getElementById('heroBgImageUrlInput');
-    if (previewImg) previewImg.src = defaultHero;
-    if (urlLabel) urlLabel.textContent = 'Default Sahyadri Wallpaper';
-    if (urlInput) urlInput.value = defaultHero;
-    showToast('Hero background reset to default');
-  } catch (err) { alert('Reset failed: ' + err.message); }
+    await adminApi('/api/admin/settings/hero-photos/add-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    if (input) input.value = '';
+    showToast('Photo added to hero slideshow!');
+    renderSettingsTab();
+  } catch (err) { alert('Failed to add photo URL: ' + err.message); }
 }
 
-async function handleSaveHeroBgUrl(e) {
-  e.preventDefault();
-  const form = e.target;
-  const btn = form.querySelector('button[type="submit"]');
-  const oldText = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Saving...</span>'; }
-  const formData = new FormData(form);
-  const heroUrl = formData.get('hero_bg_image')?.trim() || '';
+async function handleDeleteHeroPhoto(photoUrl) {
+  if (!confirm('Remove this photo from the homepage hero slideshow?')) return;
   try {
-    await adminApi('/api/admin/settings', {
-      method: 'PUT',
+    await adminApi('/api/admin/settings/hero-photos', {
+      method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ hero_bg_image: heroUrl })
+      body: JSON.stringify({ url: photoUrl })
     });
-    const previewImg = document.getElementById('heroPreviewImg');
-    const urlLabel = document.getElementById('heroActiveUrlCode');
-    if (previewImg && heroUrl) previewImg.src = heroUrl;
-    if (urlLabel) urlLabel.textContent = heroUrl || 'Default Sahyadri Wallpaper';
-    showToast('Hero background image link saved!');
-  } catch (err) { alert('Save failed: ' + err.message); }
-  finally { if (btn) { btn.disabled = false; btn.innerHTML = oldText; } }
+    showToast('Photo removed from hero slideshow.');
+    renderSettingsTab();
+  } catch (err) { alert('Failed to remove photo: ' + err.message); }
+}
+
+async function handleResetHeroPhotos() {
+  if (!confirm('Reset hero background slideshow to the 6 curated authentic Sahyadri photos?')) return;
+  try {
+    await adminApi('/api/admin/settings/hero-background', { method: 'DELETE' });
+    showToast('Hero slideshow reset to curated defaults.');
+    renderSettingsTab();
+  } catch (err) { alert('Reset failed: ' + err.message); }
 }
 
 async function handleSavePolicySettings(e) {

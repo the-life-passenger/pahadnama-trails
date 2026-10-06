@@ -382,9 +382,24 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
 
 /* Hero */
 .hero-section { position: relative; min-height: 88vh; display: flex; align-items: center; color: #ffffff; padding: 5rem 0 4rem; overflow: hidden; background-color: var(--primary-dark); }
-.hero-backdrop { position: absolute; inset: 0; z-index: 1; }
-.hero-image-layer { position: absolute; inset: 0; background-image: url('https://commons.wikimedia.org/wiki/Special:Redirect/file/Konkan_kada%2C_harishchandragad_1.jpg'); background-size: cover; background-position: center 30%; filter: brightness(0.65) saturate(1.1); transition: background-image 0.6s ease-in-out, opacity 0.4s ease; }
-.hero-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(17, 20, 18, 0.82) 0%, rgba(17, 20, 18, 0.52) 45%, rgba(12, 15, 13, 0.96) 100%); }
+.hero-backdrop { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
+.hero-image-layer { 
+  position: absolute; 
+  inset: -15px; 
+  background-image: url('/uploads/harishchandragad-cover.jpg'); 
+  background-size: cover; 
+  background-position: center 30%; 
+  filter: brightness(0.7) saturate(1.15); 
+  opacity: 0;
+  transform: scale(1.06);
+  transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1), transform 8s cubic-bezier(0.2, 0, 0.2, 1);
+  will-change: opacity, transform;
+}
+.hero-image-layer.active {
+  opacity: 1;
+  transform: scale(1);
+}
+.hero-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 14, 12, 0.82) 0%, rgba(10, 14, 12, 0.52) 45%, rgba(8, 10, 9, 0.96) 100%); pointer-events: none; }
 .hero-content { position: relative; z-index: 2; max-width: 860px; }
 .hero-badge { display: inline-flex; align-items: center; gap: 0.6rem; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px); padding: 0.4rem 1rem; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 1.5rem; }
 .hero-headline { font-family: var(--font-heading); font-weight: 800; font-size: 3.6rem; line-height: 1.12; letter-spacing: -0.02em; margin-bottom: 1.5rem; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.3); }
