@@ -12,6 +12,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
+  <!-- Instant Theme & Background Initialization (Eliminates theme flash glitch on refresh) -->
+  <script>
+    (function() {
+      try {
+        var t = localStorage.getItem('pahadnama_site_theme');
+        if (t) document.documentElement.setAttribute('data-theme', t);
+        var bg = localStorage.getItem('pahadnama_bg_color');
+        if (bg) {
+          document.documentElement.style.setProperty('--bg-page', bg);
+          document.documentElement.style.backgroundColor = bg;
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>

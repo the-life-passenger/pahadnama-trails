@@ -24,8 +24,50 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
+// Helper to get settings object
+function getSettings() {
+  const rows = db.prepare('SELECT key, value FROM settings').all();
+  const obj = {};
+  rows.forEach(r => { obj[r.key] = r.value; });
+  return obj;
+}
+
+// Server-side renderer for index.html with active theme injected into <html> tag to eliminate theme flash / FOUC
+function renderIndexHtml(req, res) {
+  try {
+    const settings = getSettings();
+    const activeTheme = settings.site_theme || 'sahyadri-sanchara';
+    const activeBgColor = settings.site_bg_color;
+
+    const htmlPath = path.join(PUBLIC_DIR, 'index.html');
+    let html = fs.readFileSync(htmlPath, 'utf8');
+
+    // Inject data-theme and background inline styles directly into <html>
+    let htmlAttrs = `data-theme="${activeTheme}"`;
+    if (activeBgColor && activeBgColor !== '#ffffff' && activeBgColor !== '#070a0e') {
+      htmlAttrs += ` style="background-color: ${activeBgColor};"`;
+    }
+    html = html.replace(/<html(?:\s+lang="en")?[^>]*>/i, `<html lang="en" ${htmlAttrs}>`);
+
+    // Inject sync script right inside <head> to update localStorage instantly
+    const syncScript = `<script>try{localStorage.setItem('pahadnama_site_theme',${JSON.stringify(activeTheme)});${activeBgColor ? `localStorage.setItem('pahadnama_bg_color',${JSON.stringify(activeBgColor)});` : ''}}catch(e){}</script>`;
+    html = html.replace('<head>', `<head>\n  ${syncScript}`);
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    return res.send(html);
+  } catch (err) {
+    console.error('Error rendering index.html with theme:', err);
+    return res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+  }
+}
+
 // Static file serving
 app.use('/uploads', express.static(UPLOADS_DIR));
+
+// Intercept root index.html to render with server-side theme injection
+app.get(['/', '/index.html'], renderIndexHtml);
+
 app.use(express.static(PUBLIC_DIR));
 
 // Multer storage for image uploads
@@ -124,13 +166,6 @@ function formatTrek(t) {
   };
 }
 
-// Helper to get settings object
-function getSettings() {
-  const rows = db.prepare('SELECT key, value FROM settings').all();
-  const obj = {};
-  rows.forEach(r => { obj[r.key] = r.value; });
-  return obj;
-}
 
 // ==========================================
 // PUBLIC API ROUTES
@@ -1291,7 +1326,7 @@ app.get('/admin', (req, res) => {
 });
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+  renderIndexHtml(req, res);
 });
 
 // Server start

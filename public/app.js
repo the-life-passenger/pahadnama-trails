@@ -63,6 +63,7 @@ function applyDynamicBackground(s) {
   const bgColor = s.site_bg_color || '#ffffff';
   document.documentElement.style.setProperty('--bg-page', bgColor);
   document.body.style.backgroundColor = bgColor;
+  try { localStorage.setItem('pahadnama_bg_color', bgColor); } catch (e) {}
 
   // 2. Background image & opacity
   let bgLayer = document.getElementById('siteCustomBgLayer');
@@ -89,6 +90,7 @@ function applyTheme(themeName) {
   const validThemes = ['sahyadri-sanchara', 'indiahikes-alpine', 'rainforest-emerald', 'zostel-nomad'];
   const activeTheme = validThemes.includes(themeName) ? themeName : 'sahyadri-sanchara';
   document.documentElement.setAttribute('data-theme', activeTheme);
+  try { localStorage.setItem('pahadnama_site_theme', activeTheme); } catch (e) {}
 
   // Update browser mobile header theme-color
   let metaTheme = document.querySelector('meta[name="theme-color"]');
