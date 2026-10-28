@@ -1768,21 +1768,21 @@ async function renderSettingsTab() {
         <div class="rzp-guide-card">
           <h4>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-            Asli Razorpay Test Gateway Kaise Chalu Karein (2-Minute Free Setup)
+            Razorpay Sandbox Gateway Setup Guide (2-Minute Free Activation)
           </h4>
           <p style="font-size:0.84rem;color:#475569;margin-top:0.25rem">
-            Razorpay ka real checkout popup chalane ke liye aapko free Test Keys chahiye hoti hain. Iske liye koi bank account ya KYC verification ki zaroorat nahi hai:
+            To enable the live Razorpay checkout popup and receive automated booking confirmations, configure your free Test Keys. No bank account or KYC documents are required for sandbox testing:
           </p>
           <ol class="rzp-guide-steps">
             <li>
-              <a href="https://dashboard.razorpay.com/app/keys" target="_blank" rel="noopener">
+              Log into <a href="https://dashboard.razorpay.com/app/keys" target="_blank" rel="noopener">
                 <strong>dashboard.razorpay.com/app/keys</strong> &rarr;
-              </a> par jayein aur free account banayein ya login karein.
+              </a> using your free Razorpay account credentials.
             </li>
-            <li>Top-right header mein toggle ko <strong>"Test Mode"</strong> par switch karein.</li>
-            <li>Left sidebar: <strong>Account &amp; Settings &rarr; API Keys</strong> par jakar <strong>"Generate Test Key"</strong> button par click karein.</li>
-            <li>Wahan se <strong>Key ID</strong> (starts with <code>rzp_test_...</code>) aur <strong>Key Secret</strong> copy karein.</li>
-            <li>Niche diye gaye box mein paste karke <strong>"Save Razorpay Settings"</strong> karein, phir <strong>"⚡ Test API Connection"</strong> button dabayein!</li>
+            <li>In the top header, switch the operating mode toggle to <strong>"Test Mode"</strong>.</li>
+            <li>Navigate to <strong>Account &amp; Settings &rarr; API Keys</strong> and click <strong>"Generate Test Key"</strong>.</li>
+            <li>Copy your <strong>Key ID</strong> (starts with <code>rzp_test_...</code>) and <strong>Key Secret</strong>.</li>
+            <li>Paste both keys in the fields below, click <strong>"Save Razorpay Settings"</strong>, then verify with <strong>"⚡ Test API Connection"</strong>.</li>
           </ol>
         </div>
 
@@ -1797,7 +1797,7 @@ async function renderSettingsTab() {
           <div class="admin-form-group">
             <label>Razorpay Key ID (Test Mode Key)</label>
             <input type="text" id="rzpKeyIdInput" name="razorpay_key_id" value="${esc(s.razorpay_key_id !== undefined ? s.razorpay_key_id : '')}" placeholder="rzp_test_xxxxxxxxxxxxxx" required>
-            <small>Aapke Razorpay Dashboard se generated Test Key ID (starts with <code>rzp_test_</code>).</small>
+            <small>Sandbox Key ID generated from your Razorpay Dashboard (starts with <code>rzp_test_</code>).</small>
           </div>
           <div class="admin-form-group">
             <label>Razorpay Key Secret (Test Mode Secret)</label>
@@ -1807,7 +1807,7 @@ async function renderSettingsTab() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
-            <small>HMAC-SHA256 signature verification ke liye use hota hai. Server par bilkul safe rehta hai.</small>
+            <small>Used for HMAC-SHA256 digital signature verification. Stored securely on the server.</small>
           </div>
           <div class="admin-form-group">
             <label>Currency Code</label>
@@ -1835,7 +1835,7 @@ async function renderSettingsTab() {
         <!-- Testing Cheat Sheet -->
         <div class="rzp-cheat-sheet">
           <div style="font-weight:700;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.4rem;color:#111412">
-            <span>🧪</span> Razorpay Test Credentials (Website Pe Test Karne Ke Liye):
+            <span>🧪</span> Razorpay Sandbox Test Credentials:
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:0.6rem">
             <div>
@@ -1844,11 +1844,11 @@ async function renderSettingsTab() {
             </div>
             <div>
               <strong>Test UPI:</strong> <code>success@razorpay</code><br>
-              <span style="font-size:0.75rem;color:var(--admin-text-muted)">UPI tab mein ye ID daalkar test karein</span>
+              <span style="font-size:0.75rem;color:var(--admin-text-muted)">Enter under UPI ID in the payment modal</span>
             </div>
             <div>
               <strong>NetBanking / Wallets:</strong><br>
-              <span style="font-size:0.75rem;color:var(--admin-text-muted)">Koi bhi bank select karein aur "Success" click karein</span>
+              <span style="font-size:0.75rem;color:var(--admin-text-muted)">Select any test bank and click "Success"</span>
             </div>
           </div>
         </div>
@@ -2148,8 +2148,8 @@ async function handleTestRazorpayKeys() {
       statusEl.style.display = 'block';
       statusEl.className = 'status-box-error';
       statusEl.innerHTML = `
-        <strong>⚠️ Placeholder Dummy Keys Detected!</strong>
-        <p style="margin:0.3rem 0 0 0">Ye sample placeholder keys hain. Official Razorpay Test Checkout popup chalane ke liye kripya <a href="https://dashboard.razorpay.com/app/keys" target="_blank" style="text-decoration:underline;font-weight:700">dashboard.razorpay.com/app/keys</a> se apni free Test Key ID aur Secret copy karke yahan enter karein.</p>
+        <strong>⚠️ Placeholder Test Keys Detected</strong>
+        <p style="margin:0.3rem 0 0 0">These are dummy placeholder credentials. To enable live Razorpay Checkout popups, please obtain your free Test Key ID and Secret from <a href="https://dashboard.razorpay.com/app/keys" target="_blank" style="text-decoration:underline;font-weight:700">dashboard.razorpay.com/app/keys</a> and enter them here.</p>
       `;
     }
     return;
@@ -2181,8 +2181,8 @@ async function handleTestRazorpayKeys() {
           <div style="display:flex;gap:0.6rem;align-items:flex-start">
             <span style="font-size:1.2rem;line-height:1">✅</span>
             <div>
-              <strong>Connection Successful! Razorpay Test Gateway is Active &amp; Ready.</strong>
-              <p style="margin:0.25rem 0 0 0;font-size:0.84rem">Test Order ID successfully created: <code>${esc(res.order_id)}</code>. Website par user jab bhi booking karega, official Razorpay Checkout popup open hoga aur test cards / test UPI se payment test ho sakegi.</p>
+              <strong>Connection Successful! Razorpay Sandbox Gateway is Active &amp; Ready.</strong>
+              <p style="margin:0.25rem 0 0 0;font-size:0.84rem">Test Order ID successfully generated: <code>${esc(res.order_id)}</code>. When customers initiate a booking checkout on the public website, the official Razorpay Checkout popup will open and process test transactions.</p>
             </div>
           </div>
         `;
@@ -2200,7 +2200,7 @@ async function handleTestRazorpayKeys() {
           <div>
             <strong>Razorpay Connection Failed:</strong>
             <p style="margin:0.25rem 0 0 0;font-size:0.84rem">${esc(err.message)}</p>
-            <small style="display:block;margin-top:0.35rem;color:#7f1d1d">Check karein ki aapne Dashboard par "Test Mode" toggle on rakha hai aur Key ID &amp; Secret sahi copy kiya hai.</small>
+            <small style="display:block;margin-top:0.35rem;color:#7f1d1d">Verify that "Test Mode" is enabled in your Razorpay Dashboard and that the Key ID and Key Secret are entered correctly.</small>
           </div>
         </div>
       `;
@@ -2668,7 +2668,65 @@ async function handleRemoveQr() {
   }
 }
 
-/* Security Tab */
+/* Security Tab — Meta Accounts Center & Instagram Style */
+function evaluatePasswordStrength(password) {
+  if (!password) return { score: 0, label: 'None', color: '#e4e4e7', text: 'Enter a new password' };
+  let score = 0;
+  if (password.length >= 6) score++;
+  if (password.length >= 10) score++;
+  if (/[0-9]/.test(password) && /[a-zA-Z]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 1) return { score: 1, label: 'Weak', color: '#ef4444', text: 'Weak — add numbers or symbols' };
+  if (score === 2) return { score: 2, label: 'Fair', color: '#f59e0b', text: 'Fair — consider adding special characters' };
+  if (score === 3) return { score: 3, label: 'Good', color: '#10b981', text: 'Good password' };
+  return { score: 4, label: 'Strong', color: '#059669', text: 'Strong password — high security' };
+}
+
+function onNewPasswordKeyup(input) {
+  const result = evaluatePasswordStrength(input.value);
+  const segments = document.querySelectorAll('.pw-strength-segment');
+  const labelEl = document.getElementById('pwStrengthLabel');
+  const textEl = document.getElementById('pwStrengthText');
+
+  segments.forEach((seg, index) => {
+    if (index < result.score) {
+      seg.style.backgroundColor = result.color;
+    } else {
+      seg.style.backgroundColor = '#e4e4e7';
+    }
+  });
+
+  if (labelEl) {
+    labelEl.textContent = result.label;
+    labelEl.style.color = result.score > 0 ? result.color : 'var(--admin-text-muted)';
+  }
+  if (textEl) textEl.textContent = result.text;
+
+  onConfirmPasswordKeyup();
+}
+
+function onConfirmPasswordKeyup() {
+  const newPass = document.getElementById('passChangeNewPass');
+  const confirmPass = document.getElementById('passChangeConfirmPass');
+  const matchMsg = document.getElementById('pwMatchMessage');
+  if (!newPass || !confirmPass || !matchMsg) return;
+
+  if (!confirmPass.value) {
+    matchMsg.style.display = 'none';
+    return;
+  }
+
+  matchMsg.style.display = 'block';
+  if (newPass.value === confirmPass.value) {
+    matchMsg.style.color = '#10b981';
+    matchMsg.innerHTML = '✓ Passwords match';
+  } else {
+    matchMsg.style.color = '#ef4444';
+    matchMsg.innerHTML = '✕ Passwords do not match';
+  }
+}
+
 async function renderSecurityTab() {
   const content = document.getElementById('adminContent');
   
@@ -2679,90 +2737,204 @@ async function renderSecurityTab() {
     } catch (e) {}
   }
 
+  const activeUser = currentAdminUser || 'the.life.passenger';
+  const initial = activeUser.charAt(0).toUpperCase();
+
   content.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(360px, 1fr));gap:1.5rem;max-width:1050px">
+    <div class="meta-sec-container">
       
-      <!-- Panel 1: Change Admin Username -->
-      <div class="admin-panel" style="margin-bottom:0">
-        <div class="admin-panel-head">
+      <!-- Meta Accounts Center Security Status Banner -->
+      <div class="meta-sec-banner">
+        <div class="meta-sec-banner-left">
+          <div class="meta-sec-shield-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
           <div>
-            <h3>👤 Change Admin Username</h3>
-            <small style="color:var(--admin-text-muted)">Update the login username for the operations portal.</small>
-          </div>
-        </div>
-
-        <div style="background:var(--admin-bg-subtle,#f8fafc);padding:0.75rem 1rem;border-radius:8px;border:1px solid var(--admin-border,#e2e8f0);margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:0.85rem;color:var(--admin-text-muted)">Current Active Username:</span>
-          <strong id="displayCurrentUsername" style="font-family:monospace;font-size:0.95rem;color:var(--admin-primary,#09090b);background:#fff;padding:2px 8px;border-radius:4px;border:1px solid var(--admin-border,#e2e8f0)">${esc(currentAdminUser || 'the.life.passenger')}</strong>
-        </div>
-
-        <form onsubmit="handleChangeUsername(event)">
-          <div class="admin-form-group">
-            <label>New Username *</label>
-            <input type="text" name="new_username" required minlength="3" placeholder="Enter new username (e.g. vivek_trails)" autocomplete="off" style="font-family:monospace">
-            <small>At least 3 characters. Letters, numbers, dots, dashes, and underscores only.</small>
-          </div>
-
-          <div class="admin-form-group">
-            <label>Current Password (Verification Required) *</label>
-            <div class="password-input-wrapper" style="position:relative">
-              <input type="password" id="userChangeVerifyPass" name="current_password" required placeholder="Enter current password to verify">
-              <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('userChangeVerifyPass', this)" title="Show/Hide Password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--admin-text-muted)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
+            <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap">
+              <h3 style="font-size:1.15rem;font-weight:800;color:#09090b;margin:0">Account Security Overview</h3>
+              <span class="meta-sec-status-pill"><span class="meta-sec-pulse-dot"></span> Protected</span>
             </div>
-            <small>Aapka current password enter karein identity verify karne ke liye.</small>
+            <p style="margin:0.25rem 0 0;font-size:0.82rem;color:var(--admin-text-muted)">
+              Enterprise-grade administrative protection &bull; Defense-in-depth cryptographic controls active
+            </p>
           </div>
-
-          <button type="submit" class="btn-admin-primary" style="margin-top:0.75rem" id="btnUpdateUsername">
-            <span>💾 Update Username</span>
-          </button>
-        </form>
+        </div>
+        <div class="meta-sec-chips">
+          <span class="sec-chip"><strong>KDF:</strong> scrypt (N=16384)</span>
+          <span class="sec-chip"><strong>Session:</strong> HTTP-Only Secure</span>
+          <span class="sec-chip"><strong>Verification:</strong> timingSafeEqual</span>
+        </div>
       </div>
 
-      <!-- Panel 2: Change Admin Password -->
-      <div class="admin-panel" style="margin-bottom:0">
+      <!-- Main Columns: Identity & Authentication -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(360px, 1fr));gap:1.5rem">
+        
+        <!-- Panel 1: Instagram-Style Identity & Username -->
+        <div class="admin-panel" style="margin-bottom:0">
+          <div class="admin-panel-head">
+            <div>
+              <h3>👤 Account Identity &amp; Username</h3>
+              <small style="color:var(--admin-text-muted)">Update your administrator handle for the operations portal.</small>
+            </div>
+          </div>
+
+          <!-- Instagram Handle Preview Card -->
+          <div class="insta-handle-card">
+            <div class="insta-handle-badge">
+              <div class="insta-avatar-circle">${esc(initial)}</div>
+              <div>
+                <div style="display:flex;align-items:center;gap:0.35rem">
+                  <span class="insta-handle-text" id="displayCurrentUsername">@${esc(activeUser)}</span>
+                  <span class="meta-verified-badge" title="Verified Administrator">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="#0095f6"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                  </span>
+                </div>
+                <div style="font-size:0.75rem;color:var(--admin-text-muted)">Operations Portal Admin</div>
+              </div>
+            </div>
+            <span style="font-size:0.75rem;font-weight:700;color:#16a34a;background:#ecfdf5;border:1px solid #bbf7d0;padding:2px 8px;border-radius:999px">Active</span>
+          </div>
+
+          <form onsubmit="handleChangeUsername(event)">
+            <div class="admin-form-group">
+              <label>New Username *</label>
+              <input type="text" name="new_username" required minlength="3" placeholder="Enter new username (e.g. vivek_trails)" autocomplete="off" style="font-family:monospace">
+              <small>Must be at least 3 characters. Letters, numbers, dots, and underscores allowed.</small>
+            </div>
+
+            <div class="admin-form-group">
+              <label>Current Password (Identity Verification Required) *</label>
+              <div class="password-input-wrapper" style="position:relative">
+                <input type="password" id="userChangeVerifyPass" name="current_password" required placeholder="Enter current password to verify">
+                <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('userChangeVerifyPass', this)" title="Show/Hide Password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--admin-text-muted)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <small>For security, changing your administrative handle requires entering your current password.</small>
+            </div>
+
+            <button type="submit" class="btn-admin-primary" style="margin-top:0.75rem" id="btnUpdateUsername">
+              <span>💾 Update Username</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Panel 2: Instagram / Meta Style Password & Security -->
+        <div class="admin-panel" style="margin-bottom:0">
+          <div class="admin-panel-head">
+            <div>
+              <h3>🔐 Password &amp; Authentication</h3>
+              <small style="color:var(--admin-text-muted)">Manage and update your administrator account password.</small>
+            </div>
+          </div>
+
+          <p style="font-size:0.83rem;color:var(--admin-text-muted);margin-bottom:1.25rem;line-height:1.45">
+            Your password must be at least 6 characters and should include a combination of letters, numbers, and special symbols for maximum security.
+          </p>
+
+          <form onsubmit="handleChangePassword(event)">
+            <div class="admin-form-group">
+              <label>Current Password *</label>
+              <div class="password-input-wrapper" style="position:relative">
+                <input type="password" id="passChangeCurrentPass" name="current_password" required placeholder="Enter current password">
+                <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('passChangeCurrentPass', this)" title="Show/Hide Password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--admin-text-muted)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="admin-form-group">
+              <label>New Password (min 6 characters) *</label>
+              <div class="password-input-wrapper" style="position:relative">
+                <input type="password" id="passChangeNewPass" name="new_password" required minlength="6" placeholder="Enter new strong password" oninput="onNewPasswordKeyup(this)">
+                <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('passChangeNewPass', this)" title="Show/Hide Password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--admin-text-muted)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              
+              <!-- Real-time Password Strength Meter -->
+              <div class="pw-strength-container">
+                <div class="pw-strength-bar">
+                  <div class="pw-strength-segment"></div>
+                  <div class="pw-strength-segment"></div>
+                  <div class="pw-strength-segment"></div>
+                  <div class="pw-strength-segment"></div>
+                </div>
+                <div class="pw-strength-label">
+                  <span id="pwStrengthText">Password Strength</span>
+                  <span id="pwStrengthLabel">None</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="admin-form-group">
+              <label>Confirm New Password *</label>
+              <div class="password-input-wrapper" style="position:relative">
+                <input type="password" id="passChangeConfirmPass" name="confirm_password" required minlength="6" placeholder="Re-enter new password to confirm" oninput="onConfirmPasswordKeyup()">
+                <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('passChangeConfirmPass', this)" title="Show/Hide Password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--admin-text-muted)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div id="pwMatchMessage" style="font-size:0.75rem;font-weight:700;margin-top:0.35rem;display:none"></div>
+            </div>
+
+            <button type="submit" class="btn-admin-primary" style="margin-top:0.75rem" id="btnUpdatePassword">
+              <span>🔒 Update Password</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Panel 3: Meta Accounts Center "Where You're Logged In" & Enterprise Safeguards -->
+      <div class="admin-panel" style="margin-bottom:1rem">
         <div class="admin-panel-head">
           <div>
-            <h3>🔐 Change Admin Password</h3>
-            <small style="color:var(--admin-text-muted)">Update your administrator login password.</small>
+            <h3>🛡️ Where You're Logged In &amp; Security Safeguards</h3>
+            <small style="color:var(--admin-text-muted)">Active administrator sessions and server-side defensive protections.</small>
           </div>
         </div>
 
-        <p style="font-size:0.85rem;color:var(--admin-text-muted);margin-bottom:1.25rem">
-          Security verification ke liye pehle current password enter karein, fir new password set karein.
-        </p>
-
-        <form onsubmit="handleChangePassword(event)">
-          <div class="admin-form-group">
-            <label>Current Password *</label>
-            <div class="password-input-wrapper" style="position:relative">
-              <input type="password" id="passChangeCurrentPass" name="current_password" required placeholder="Enter your current password">
-              <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('passChangeCurrentPass', this)" title="Show/Hide Password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--admin-text-muted)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <div class="meta-session-card">
+          <div class="meta-device-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="meta-session-info">
+            <div class="meta-session-title">
+              <span>Web Console &bull; This Device</span>
+              <span class="meta-sec-status-pill"><span class="meta-sec-pulse-dot"></span> Active Now</span>
+            </div>
+            <div class="meta-session-desc">
+              Pahadnama Operations Portal &bull; Node.js Express Session &bull; Secured with Cryptographic Auth Token
+            </div>
+            <div style="margin-top:0.75rem">
+              <button type="button" class="btn-admin-secondary" onclick="logout()" style="padding:0.4rem 0.85rem;font-size:0.8rem">
+                <span>🚪 Log Out of Console</span>
               </button>
             </div>
           </div>
+        </div>
 
-          <div class="admin-form-group">
-            <label>New Password (min 6 characters) *</label>
-            <div class="password-input-wrapper" style="position:relative">
-              <input type="password" id="passChangeNewPass" name="new_password" required minlength="6" placeholder="Enter new strong password">
-              <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('passChangeNewPass', this)" title="Show/Hide Password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--admin-text-muted)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
+        <div class="meta-safeguards-list">
+          <div class="meta-safeguard-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <div>
+              <strong>Cryptographic Key Derivation (scrypt):</strong> Passwords are protected using a 16-byte random cryptographic salt and the memory-hard scrypt algorithm (N=16384, r=8, p=1), safeguarding against ASIC/GPU brute-force attacks.
             </div>
           </div>
-
-          <div class="admin-form-group">
-            <label>Confirm New Password *</label>
-            <input type="password" id="passChangeConfirmPass" name="confirm_password" required minlength="6" placeholder="Re-enter new password">
+          <div class="meta-safeguard-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <div>
+              <strong>HTTP-Only Secure Cookie Session Management:</strong> Authentication tokens are stored in strict HTTP-Only cookies, making them inaccessible to client-side scripts and defending against Cross-Site Scripting (XSS) session hijacking.
+            </div>
           </div>
-
-          <button type="submit" class="btn-admin-primary" style="margin-top:0.75rem" id="btnUpdatePassword">
-            <span>🔒 Update Password</span>
-          </button>
-        </form>
+          <div class="meta-safeguard-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <div>
+              <strong>Constant-Time Timing-Safe Verification:</strong> Server-side hash evaluations use <code>crypto.timingSafeEqual</code> to prevent side-channel timing attacks from leaking password length or content.
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>`;
@@ -2797,7 +2969,7 @@ async function handleChangeUsername(e) {
 
     currentAdminUser = res.username || new_username;
     const displayEl = document.getElementById('displayCurrentUsername');
-    if (displayEl) displayEl.textContent = currentAdminUser;
+    if (displayEl) displayEl.textContent = '@' + currentAdminUser;
 
     showToast('Admin username changed successfully to "' + currentAdminUser + '"!');
     form.reset();
@@ -2841,6 +3013,14 @@ async function handleChangePassword(e) {
     });
     showToast('Admin password updated successfully!');
     form.reset();
+    const segments = document.querySelectorAll('.pw-strength-segment');
+    segments.forEach(seg => { seg.style.backgroundColor = '#e4e4e7'; });
+    const labelEl = document.getElementById('pwStrengthLabel');
+    if (labelEl) { labelEl.textContent = 'None'; labelEl.style.color = 'var(--admin-text-muted)'; }
+    const textEl = document.getElementById('pwStrengthText');
+    if (textEl) textEl.textContent = 'Password Strength';
+    const matchMsg = document.getElementById('pwMatchMessage');
+    if (matchMsg) matchMsg.style.display = 'none';
   } catch (err) {
     alert('Failed to change password: ' + err.message);
   } finally {

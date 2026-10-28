@@ -1104,3 +1104,234 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   color: #ffffff !important;
   border-color: #15803d !important;
 }
+
+/* Meta Accounts Center / Instagram Style Security Center */
+.meta-sec-container {
+  max-width: 1080px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.meta-sec-banner {
+  background: #ffffff;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  padding: 1.4rem 1.6rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.meta-sec-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.meta-sec-shield-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #09090b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.meta-sec-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.meta-sec-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: secPulse 2s infinite;
+}
+
+@keyframes secPulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.meta-sec-chips {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.sec-chip {
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  color: #27272a;
+  font-size: 0.74rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sec-chip strong {
+  color: #09090b;
+}
+
+/* Instagram Handle Preview Pill */
+.insta-handle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.insta-handle-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.insta-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #09090b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+}
+
+.insta-handle-text {
+  font-family: monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #09090b;
+}
+
+.meta-verified-badge {
+  color: #0095f6;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Password Strength Meter */
+.pw-strength-container {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.pw-strength-bar {
+  display: flex;
+  gap: 4px;
+  height: 4px;
+  margin-bottom: 0.35rem;
+}
+
+.pw-strength-segment {
+  flex: 1;
+  background: #e4e4e7;
+  border-radius: 2px;
+  transition: background-color 0.25s ease;
+}
+
+.pw-strength-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+}
+
+/* Active Session Meta Card */
+.meta-session-card {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  background: #f8fafc;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.meta-device-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid var(--admin-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #09090b;
+  flex-shrink: 0;
+}
+
+.meta-session-info {
+  flex: 1;
+}
+
+.meta-session-title {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #09090b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.meta-session-desc {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  margin-top: 0.2rem;
+  line-height: 1.4;
+}
+
+.meta-safeguards-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.meta-safeguard-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.82rem;
+  color: #3f3f46;
+  line-height: 1.4;
+}
+
+.meta-safeguard-item svg {
+  flex-shrink: 0;
+  color: #10b981;
+  margin-top: 2px;
+}

@@ -1308,7 +1308,7 @@ app.post('/api/admin/payments/test-keys', requireAdmin, async (req, res) => {
     if (cleanKeyId === 'rzp_test_5172839485' || cleanKeySecret === 'rzp_test_secret_demo') {
       return res.status(400).json({
         ok: false,
-        error: 'Ye default placeholder dummy keys hain. Kripya dashboard.razorpay.com se apni asli Test Key ID (rzp_test_...) aur Secret generate karke enter karein.'
+        error: 'Default demo placeholder keys detected. Please obtain your authentic Sandbox API Keys (rzp_test_...) from dashboard.razorpay.com.'
       });
     }
 
@@ -1333,7 +1333,7 @@ app.post('/api/admin/payments/test-keys', requireAdmin, async (req, res) => {
     if (rzpResponse.ok && data && data.id) {
       return res.json({
         ok: true,
-        message: 'Razorpay Test Gateway se successfully connect ho gaya! Real test popup ready hai.',
+        message: 'Successfully connected to Razorpay Sandbox Gateway! Live checkout preview is active.',
         order_id: data.id,
         key_id: cleanKeyId,
         is_test_mode: cleanKeyId.startsWith('rzp_test_')
@@ -1350,7 +1350,7 @@ app.post('/api/admin/payments/test-keys', requireAdmin, async (req, res) => {
     console.error('Error testing Razorpay keys:', err);
     return res.status(500).json({
       ok: false,
-      error: 'Razorpay server se sampark nahi ho saka: ' + err.message
+      error: 'Unable to connect to Razorpay gateway server: ' + err.message
     });
   }
 });
