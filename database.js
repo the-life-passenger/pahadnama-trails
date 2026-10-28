@@ -226,17 +226,12 @@ for (const [key, value] of Object.entries(defaultSettings)) {
   setStmt.run(key, value);
 }
 
-// Ensure the.life.passenger exists with password vivektrails
-db.prepare("DELETE FROM admins WHERE username != 'the.life.passenger'").run();
-const adminCheck = db.prepare('SELECT id FROM admins WHERE username = ?').get('the.life.passenger');
-const { hash: lifeHash, salt: lifeSalt } = hashPassword('vivektrails');
-if (!adminCheck) {
+// Ensure at least one admin exists (creates default only on initial setup)
+const anyAdmin = db.prepare('SELECT id, username FROM admins LIMIT 1').get();
+if (!anyAdmin) {
+  const { hash: lifeHash, salt: lifeSalt } = hashPassword('vivektrails');
   db.prepare('INSERT INTO admins (username, password_hash, salt, name) VALUES (?, ?, ?, ?)').run(
     'the.life.passenger', lifeHash, lifeSalt, 'Vivek Chauhan'
-  );
-} else {
-  db.prepare('UPDATE admins SET password_hash = ?, salt = ? WHERE username = ?').run(
-    lifeHash, lifeSalt, 'the.life.passenger'
   );
 }
 

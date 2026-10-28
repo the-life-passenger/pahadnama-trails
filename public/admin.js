@@ -5,6 +5,7 @@ let currentTab = (function() {
   try { return sessionStorage.getItem('admin_active_tab') || 'overview'; } catch (e) { return 'overview'; }
 })();
 let activeTrekList = [];
+let currentAdminUser = '';
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, m => ({
@@ -40,8 +41,12 @@ async function adminApi(url, options = {}) {
 async function checkAuth() {
   try {
     const res = await adminApi('/api/admin/me');
-    if (res.authenticated) showDashboard();
-    else showLogin();
+    if (res.authenticated) {
+      if (res.username) currentAdminUser = res.username;
+      showDashboard();
+    } else {
+      showLogin();
+    }
   } catch {
     showLogin();
   }
@@ -99,7 +104,8 @@ async function handleAdminLogin(e) {
     });
     if (res.ok) {
       if (res.token) localStorage.setItem('admin_token', res.token);
-      showToast('Welcome, ' + (res.name || 'Trail Master') + '!');
+      currentAdminUser = res.username || username;
+      showToast('Welcome, ' + (res.name || currentAdminUser) + '!');
       showDashboard();
     }
   } catch (err) {
@@ -2663,35 +2669,183 @@ async function handleRemoveQr() {
 }
 
 /* Security Tab */
-function renderSecurityTab() {
+async function renderSecurityTab() {
   const content = document.getElementById('adminContent');
+  
+  if (!currentAdminUser) {
+    try {
+      const me = await adminApi('/api/admin/me');
+      if (me.username) currentAdminUser = me.username;
+    } catch (e) {}
+  }
+
   content.innerHTML = `
-    <div class="admin-panel" style="max-width:550px">
-      <div class="admin-panel-head"><h3>Change Admin Password</h3></div>
-      <p style="font-size:0.88rem;color:var(--admin-text-muted);margin-bottom:1.5rem">Keep your password secure. No SMS OTP needed.</p>
-      <form onsubmit="handleChangePassword(event)">
-        <div class="admin-form-group">
-          <label>New Password (min 6 characters) *</label>
-          <input type="password" name="new_password" required minlength="6" placeholder="Enter new password">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(360px, 1fr));gap:1.5rem;max-width:1050px">
+      
+      <!-- Panel 1: Change Admin Username -->
+      <div class="admin-panel" style="margin-bottom:0">
+        <div class="admin-panel-head">
+          <div>
+            <h3>👤 Change Admin Username</h3>
+            <small style="color:var(--admin-text-muted)">Update the login username for the operations portal.</small>
+          </div>
         </div>
-        <button type="submit" class="btn-admin-primary" style="margin-top:0.5rem">Update Password</button>
-      </form>
+
+        <div style="background:var(--admin-bg-subtle,#f8fafc);padding:0.75rem 1rem;border-radius:8px;border:1px solid var(--admin-border,#e2e8f0);margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:0.85rem;color:var(--admin-text-muted)">Current Active Username:</span>
+          <strong id="displayCurrentUsername" style="font-family:monospace;font-size:0.95rem;color:var(--admin-primary,#09090b);background:#fff;padding:2px 8px;border-radius:4px;border:1px solid var(--admin-border,#e2e8f0)">${esc(currentAdminUser || 'the.life.passenger')}</strong>
+        </div>
+
+        <form onsubmit="handleChangeUsername(event)">
+          <div class="admin-form-group">
+            <label>New Username *</label>
+            <input type="text" name="new_username" required minlength="3" placeholder="Enter new username (e.g. vivek_trails)" autocomplete="off" style="font-family:monospace">
+            <small>At least 3 characters. Letters, numbers, dots, dashes, and underscores only.</small>
+          </div>
+
+          <div class="admin-form-group">
+            <label>Current Password (Verification Required) *</label>
+            <div class="password-input-wrapper" style="position:relative">
+              <input type="password" id="userChangeVerifyPass" name="current_password" required placeholder="Enter current password to verify">
+              <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('userChangeVerifyPass', this)" title="Show/Hide Password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--admin-text-muted)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <small>Aapka current password enter karein identity verify karne ke liye.</small>
+          </div>
+
+          <button type="submit" class="btn-admin-primary" style="margin-top:0.75rem" id="btnUpdateUsername">
+            <span>💾 Update Username</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Panel 2: Change Admin Password -->
+      <div class="admin-panel" style="margin-bottom:0">
+        <div class="admin-panel-head">
+          <div>
+            <h3>🔐 Change Admin Password</h3>
+            <small style="color:var(--admin-text-muted)">Update your administrator login password.</small>
+          </div>
+        </div>
+
+        <p style="font-size:0.85rem;color:var(--admin-text-muted);margin-bottom:1.25rem">
+          Security verification ke liye pehle current password enter karein, fir new password set karein.
+        </p>
+
+        <form onsubmit="handleChangePassword(event)">
+          <div class="admin-form-group">
+            <label>Current Password *</label>
+            <div class="password-input-wrapper" style="position:relative">
+              <input type="password" id="passChangeCurrentPass" name="current_password" required placeholder="Enter your current password">
+              <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('passChangeCurrentPass', this)" title="Show/Hide Password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--admin-text-muted)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label>New Password (min 6 characters) *</label>
+            <div class="password-input-wrapper" style="position:relative">
+              <input type="password" id="passChangeNewPass" name="new_password" required minlength="6" placeholder="Enter new strong password">
+              <button type="button" class="password-toggle-btn" onclick="toggleSecretVisibility('passChangeNewPass', this)" title="Show/Hide Password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--admin-text-muted)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label>Confirm New Password *</label>
+            <input type="password" id="passChangeConfirmPass" name="confirm_password" required minlength="6" placeholder="Re-enter new password">
+          </div>
+
+          <button type="submit" class="btn-admin-primary" style="margin-top:0.75rem" id="btnUpdatePassword">
+            <span>🔒 Update Password</span>
+          </button>
+        </form>
+      </div>
+
     </div>`;
+}
+
+async function handleChangeUsername(e) {
+  e.preventDefault();
+  const form = e.target;
+  const btn = document.getElementById('btnUpdateUsername') || form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+  
+  const new_username = form.new_username.value.trim();
+  const current_password = form.current_password.value;
+
+  if (!new_username || new_username.length < 3) {
+    alert('New username must be at least 3 characters long.');
+    return;
+  }
+  if (!current_password) {
+    alert('Please enter your current password to verify your identity.');
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Verifying &amp; Updating...</span>'; }
+
+  try {
+    const res = await adminApi('/api/admin/change-username', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ new_username, current_password })
+    });
+
+    currentAdminUser = res.username || new_username;
+    const displayEl = document.getElementById('displayCurrentUsername');
+    if (displayEl) displayEl.textContent = currentAdminUser;
+
+    showToast('Admin username changed successfully to "' + currentAdminUser + '"!');
+    form.reset();
+  } catch (err) {
+    alert('Failed to change username: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = oldText; }
+  }
 }
 
 async function handleChangePassword(e) {
   e.preventDefault();
   const form = e.target;
+  const btn = document.getElementById('btnUpdatePassword') || form.querySelector('button[type="submit"]');
+  const oldText = btn ? btn.innerHTML : '';
+
+  const current_password = form.current_password.value;
   const new_password = form.new_password.value;
+  const confirm_password = form.confirm_password.value;
+
+  if (!current_password) {
+    alert('Please enter your current password to authorize this change.');
+    return;
+  }
+  if (!new_password || new_password.length < 6) {
+    alert('New password must be at least 6 characters long.');
+    return;
+  }
+  if (new_password !== confirm_password) {
+    alert('New password and confirm password do not match. Please re-enter.');
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>⏳ Verifying &amp; Updating...</span>'; }
+
   try {
     await adminApi('/api/admin/change-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ new_password })
+      body: JSON.stringify({ current_password, new_password })
     });
     showToast('Admin password updated successfully!');
     form.reset();
-  } catch (err) { alert('Failed: ' + err.message); }
+  } catch (err) {
+    alert('Failed to change password: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = oldText; }
+  }
 }
 
 function closeAdminModal() {

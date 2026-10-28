@@ -16,8 +16,8 @@ if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
-// In-memory active admin sessions set
-const adminSessions = new Set();
+// In-memory active admin sessions map (token -> { id, username, name })
+const adminSessions = new Map();
 
 // Middlewares
 app.use(express.json({ limit: '10mb' }));
@@ -162,6 +162,7 @@ function requireAdmin(req, res, next) {
     if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') token = parts[1];
   }
   if (token && adminSessions.has(token)) {
+    req.admin = adminSessions.get(token);
     return next();
   }
   return res.status(401).json({ ok: false, error: 'Admin authentication required' });
@@ -604,7 +605,8 @@ app.post('/api/admin/login', (req, res) => {
     }
 
     const sessionToken = crypto.randomBytes(32).toString('hex');
-    adminSessions.add(sessionToken);
+    const sessionData = { id: adminUser.id, username: adminUser.username, name: adminUser.name };
+    adminSessions.set(sessionToken, sessionData);
 
     res.cookie('admin_session', sessionToken, {
       httpOnly: true,
@@ -612,7 +614,7 @@ app.post('/api/admin/login', (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
-    res.json({ ok: true, token: sessionToken, name: adminUser.name });
+    res.json({ ok: true, token: sessionToken, username: adminUser.username, name: adminUser.name });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ ok: false, error: 'Internal server error during login' });
@@ -622,7 +624,8 @@ app.post('/api/admin/login', (req, res) => {
 app.get('/api/admin/me', (req, res) => {
   const token = req.cookies.admin_session || req.headers['x-admin-token'];
   if (token && adminSessions.has(token)) {
-    return res.json({ authenticated: true });
+    const session = adminSessions.get(token);
+    return res.json({ authenticated: true, username: session.username, name: session.name });
   }
   res.json({ authenticated: false });
 });
@@ -1352,18 +1355,97 @@ app.post('/api/admin/payments/test-keys', requireAdmin, async (req, res) => {
   }
 });
 
-// Security: Change admin password
+// Security: Change admin username (requires current password verification)
+app.post('/api/admin/change-username', requireAdmin, (req, res) => {
+  try {
+    const { new_username, current_password } = req.body;
+    if (!new_username || new_username.trim().length < 3) {
+      return res.status(400).json({ error: 'New username must be at least 3 characters long' });
+    }
+    if (!current_password) {
+      return res.status(400).json({ error: 'Current password is required to verify identity' });
+    }
+
+    const cleanNewUsername = new_username.trim().toLowerCase();
+    if (!/^[a-zA-Z0-9_.-]+$/.test(cleanNewUsername)) {
+      return res.status(400).json({ error: 'Username can only contain letters, numbers, dots, dashes, and underscores' });
+    }
+
+    // Get current logged in admin record
+    const adminUser = req.admin?.id 
+      ? db.prepare('SELECT * FROM admins WHERE id = ?').get(req.admin.id)
+      : (req.admin?.username 
+          ? db.prepare('SELECT * FROM admins WHERE username = ?').get(req.admin.username)
+          : db.prepare('SELECT * FROM admins LIMIT 1').get());
+
+    if (!adminUser) {
+      return res.status(404).json({ error: 'Admin account not found' });
+    }
+
+    // Verify current password
+    if (!verifyPassword(String(current_password), adminUser.password_hash, adminUser.salt)) {
+      return res.status(400).json({ error: 'Current password incorrect. Verification failed.' });
+    }
+
+    // Check if new username is already in use by another record
+    const existing = db.prepare('SELECT id FROM admins WHERE username = ? AND id != ?').get(cleanNewUsername, adminUser.id);
+    if (existing) {
+      return res.status(400).json({ error: 'Username is already in use. Please choose another.' });
+    }
+
+    // Update username in database
+    db.prepare('UPDATE admins SET username = ? WHERE id = ?').run(cleanNewUsername, adminUser.id);
+
+    // Update in-memory session token data if available
+    const token = req.cookies.admin_session || req.headers['x-admin-token'];
+    if (token && adminSessions.has(token)) {
+      const s = adminSessions.get(token);
+      s.username = cleanNewUsername;
+      adminSessions.set(token, s);
+    }
+
+    res.json({ ok: true, message: `Admin username updated to "${cleanNewUsername}" successfully!`, username: cleanNewUsername });
+  } catch (err) {
+    console.error('Error changing admin username:', err);
+    res.status(500).json({ error: 'Failed to update username: ' + err.message });
+  }
+});
+
+// Security: Change admin password (requires current password verification)
 app.post('/api/admin/change-password', requireAdmin, (req, res) => {
   try {
-    const { new_password } = req.body;
-    if (!new_password || new_password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    const { current_password, new_password } = req.body;
+    if (!current_password) {
+      return res.status(400).json({ error: 'Current password is required to verify identity' });
     }
+    if (!new_password || new_password.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+    }
+
+    // Get current logged in admin record
+    const adminUser = req.admin?.id 
+      ? db.prepare('SELECT * FROM admins WHERE id = ?').get(req.admin.id)
+      : (req.admin?.username 
+          ? db.prepare('SELECT * FROM admins WHERE username = ?').get(req.admin.username)
+          : db.prepare('SELECT * FROM admins LIMIT 1').get());
+
+    if (!adminUser) {
+      return res.status(404).json({ error: 'Admin account not found' });
+    }
+
+    // Verify current password
+    if (!verifyPassword(String(current_password), adminUser.password_hash, adminUser.salt)) {
+      return res.status(400).json({ error: 'Current password incorrect. Verification failed.' });
+    }
+
+    // Hash new password and update in database
     const { hash, salt } = hashPassword(new_password);
-    db.prepare('UPDATE admins SET password_hash = ?, salt = ? WHERE username = ?').run(hash, salt, 'the.life.passenger');
-    res.json({ ok: true, message: 'Admin password successfully updated' });
+    db.prepare('UPDATE admins SET password_hash = ?, salt = ? WHERE id = ?').run(hash, salt, adminUser.id);
+
+    res.json({ ok: true, message: 'Admin password successfully updated!' });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update password' });
+    console.error('Error changing admin password:', err);
+    res.status(500).json({ error: 'Failed to update password: ' + err.message });
   }
 });
 
