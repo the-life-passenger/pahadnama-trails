@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pahadnama Trails — Mini Project Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090e17;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --text: #ffffff;
+      --text-muted: #9ca3af;
+      --emerald: #10b981;
+      --emerald-dark: #064e3b;
+      --orange: #f97316;
+      --blue: #38bdf8;
+      --purple: #a855f7;
+      --red: #ef4444;
+      --font-heading: 'Manrope', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Progress Bar */
+    .progress-bar-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      z-index: 100;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--emerald), var(--blue));
+      width: 10%;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Slide Viewport */
+    .presentation-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 2.5rem 4rem;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 1240px;
+      height: 680px;
+      animation: fadeIn 0.35s ease;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .slide.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .slide-header {
+      margin-bottom: 1.25rem;
+    }
+    .slide-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--emerald);
+      margin-bottom: 0.35rem;
+    }
+    .slide-title {
+      font-family: var(--font-heading);
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+    .slide-sub {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Cards & Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      flex: 1;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.15rem;
+      flex: 1;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      flex: 1;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.35rem 1.45rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 1.12rem;
+      font-weight: 800;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .card-title.emerald { color: var(--emerald); }
+    .card-title.blue { color: var(--blue); }
+    .card-title.orange { color: var(--orange); }
+    .card-title.purple { color: var(--purple); }
+    .card-title.red { color: var(--red); }
+
+    .card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      font-size: 0.87rem;
+      line-height: 1.45;
+    }
+    .card li strong {
+      color: #ffffff;
+    }
+    .card li span {
+      color: var(--text-muted);
+    }
+    .card li::before {
+      content: "•";
+      color: var(--emerald);
+      font-weight: bold;
+      display: inline-block;
+      width: 0.8em;
+      margin-left: -0.8em;
+    }
+
+    /* Title Slide Specific */
+    .title-banner {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      background: var(--emerald-dark);
+      border: 1px solid var(--emerald);
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #a7f3d0;
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+    }
+    .main-title {
+      font-family: var(--font-heading);
+      font-size: 3.2rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    .main-sub {
+      font-size: 1.4rem;
+      color: var(--orange);
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+    .main-tagline {
+      font-size: 1.05rem;
+      font-style: italic;
+      color: var(--text-muted);
+      margin-top: 0.65rem;
+    }
+    .meta-box {
+      margin-top: 2rem;
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem 1.65rem;
+    }
+
+    /* Flow Box in Slide 5 */
+    .flow-box {
+      background: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.15rem 1.4rem;
+      margin-bottom: 1rem;
+    }
+    .flow-step {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+    .flow-step strong { color: #ffffff; }
+
+    /* Bottom Control Bar */
+    .control-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      z-index: 100;
+    }
+    .controls-left, .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .btn-ctrl {
+      background: #1f2937;
+      color: #ffffff;
+      border: 1px solid #374151;
+      border-radius: 6px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+    }
+    .btn-ctrl:hover {
+      background: var(--emerald);
+      color: #090e17;
+      border-color: var(--emerald);
+    }
+    .slide-counter {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+    .slide-counter strong {
+      color: #ffffff;
+    }
+
+    /* Speaker Notes Drawer */
+    .notes-drawer {
+      display: none;
+      position: fixed;
+      bottom: 52px;
+      left: 0;
+      right: 0;
+      background: #0b111e;
+      border-top: 2px solid var(--emerald);
+      padding: 1rem 2rem;
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 90;
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+    }
+    .notes-drawer.open {
+      display: block;
+    }
+    .notes-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--emerald);
+      margin-bottom: 0.35rem;
+    }
+    .notes-content {
+      font-size: 0.92rem;
+      color: #e5e7eb;
+      line-height: 1.5;
+    }
+
+    /* Printable Styling */
+    @media print {
+      body { overflow: visible; background: #ffffff; color: #000000; }
+      .progress-bar-container, .control-bar, .notes-drawer { display: none !important; }
+      .presentation-container { padding: 0; display: block; }
+      .slide { display: flex !important; page-break-after: always; height: 100vh; max-width: 100%; border: none; padding: 2rem; color: #000000; }
+      .card, .meta-box, .flow-box { background: #f9fafb !important; border-color: #d1d5db !important; color: #111827 !important; }
+      .slide-title, .main-title, .card li strong, .flow-step strong { color: #111827 !important; }
+      .slide-sub, .main-tagline, .card li span, .flow-step { color: #4b5563 !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Progress Bar -->
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="presentation-container">
+
+    <!-- SLIDE 1 -->
+    <div class="slide active" data-notes="Good morning/afternoon respected examiners. Today I am presenting our mini-project titled 'Pahadnama Trails' — a full-stack adventure tourism and Sahyadri trek management platform. In this presentation, I will cover our project overview, objectives, system architecture, database design, core features, and conclusions.">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+        <div>
+          <span class="title-banner">ACADEMIC MINI PROJECT &bull; 2025-2026</span>
+          <h1 class="main-title">PAHADNAMA TRAILS</h1>
+          <h2 class="main-sub">Full-Stack Adventure Tourism &amp; Sahyadri Trek Management System</h2>
+          <p class="main-tagline">“Safar jahan manzil se zyada khoobsurat hai”</p>
+        </div>
+        <div class="meta-box">
+          <div style="color:var(--blue);font-weight:800;font-size:0.95rem;margin-bottom:0.4rem">PROJECT TEAM &amp; ACADEMIC CREDENTIALS</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;font-size:0.88rem">
+            <div><strong style="color:#fff">Presented by:</strong> <span style="color:var(--text-muted)">Student Candidate / Project Team</span></div>
+            <div><strong style="color:#fff">Department:</strong> <span style="color:var(--text-muted)">Computer Engineering / IT</span></div>
+            <div><strong style="color:#fff">Guided by:</strong> <span style="color:var(--text-muted)">Project Guide &amp; Faculty</span></div>
+            <div><strong style="color:#fff">Academic Year:</strong> <span style="color:var(--text-muted)">2025 &ndash; 2026</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide" data-notes="In Maharashtra, thousands of trekkers visit Sahyadri forts every weekend. Most groups operate through manual WhatsApp chats, causing double bookings and missed payments. Pahadnama Trails solves this with automated weekend slot tracking, instant digital vouchers, and an executive administration dashboard.">
+      <div class="slide-header">
+        <span class="slide-tag">EXECUTIVE SUMMARY</span>
+        <h2 class="slide-title">Project Overview &amp; Problem Statement</h2>
+        <p class="slide-sub">Bridging the gap between outdoor enthusiasts and organized Sahyadri trekking.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title red">⚠️ Existing Industry Challenges</div>
+          <ul>
+            <li><strong>Manual WhatsApp Chaos:</strong> <span>Fragmented bookings through chats cause double bookings and dropped leads.</span></li>
+            <li><strong>Opaque Pricing &amp; Details:</strong> <span>Trekkers struggle to find clear route difficulty, elevation gain, and gear checklists.</span></li>
+            <li><strong>No Real-Time Seat Counters:</strong> <span>Organizers calculate occupancy across spreadsheets without live availability badges.</span></li>
+            <li><strong>Informal Payment Proof:</strong> <span>Manual UPI screenshots lack cryptographic verification and official booking slips.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title emerald">✨ The Pahadnama Solution</div>
+          <ul>
+            <li><strong>Unified Digital Booking:</strong> <span>End-to-end direct portal for Maharashtra trails (Harishchandragad, Kalsubai, etc.).</span></li>
+            <li><strong>Live Slot Inventory:</strong> <span>Real-time Saturday/Sunday seat counters (AVAILABLE, FILLING FAST, FULL) with auto-decrement.</span></li>
+            <li><strong>Dual Checkout Channels:</strong> <span>Razorpay Gateway with HMAC-SHA256 signature verification plus 1-click WhatsApp fallback.</span></li>
+            <li><strong>Executive Operations CMS:</strong> <span>Modern obsidian dark control center for routes, media, and security health.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 -->
+    <div class="slide" data-notes="Our project objectives are divided into three pillars: first, user experience with transparent trail information and zero theme flickering; second, automated operations with real-time seat inventory; and third, enterprise-grade cryptographic security for payments and admin credentials.">
+      <div class="slide-header">
+        <span class="slide-tag">PROJECT SCOPE &amp; TARGETS</span>
+        <h2 class="slide-title">Key Project Objectives</h2>
+        <p class="slide-sub">Strategic functional, operational, and architectural targets.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title blue">1. User Experience</div>
+          <ul>
+            <li><strong>Categorized Trails:</strong> <span>Filter routes by Beginner Friendly, Moderate Forts, and Thrill Summits.</span></li>
+            <li><strong>Interactive Stats:</strong> <span>Display altitude (ft), distance (km), duration, and PDF brochure download.</span></li>
+            <li><strong>Zero-Flicker Speed:</strong> <span>Hybrid SSR delivery eliminating Flash of Unstyled Content (FOUC).</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title orange">2. Automated Operations</div>
+          <ul>
+            <li><strong>Smart Slot Engine:</strong> <span>Dynamic weekend batches with auto-expiring and real-time seat status.</span></li>
+            <li><strong>Digital Vouchers:</strong> <span>Instant printable vouchers with unique PAHAD-XXXX confirmation codes.</span></li>
+            <li><strong>Dual Payment Options:</strong> <span>Razorpay test/live gateway and manual WhatsApp UPI QR validation.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title emerald">3. Security &amp; Control</div>
+          <ul>
+            <li><strong>Enterprise Access:</strong> <span>Instagram/Meta-inspired Security Center requiring current password verification.</span></li>
+            <li><strong>Crypto Safeguards:</strong> <span>scrypt password hashing with 16-byte random salts and timingSafeEqual checks.</span></li>
+            <li><strong>Executive CMS:</strong> <span>Full CRUD control over trails, weekend batches, reviews, and theme presets.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="slide" data-notes="We selected a lightweight, high-performance stack. On the frontend, Vanilla JS and semantic HTML5 eliminate heavy framework overhead. On the backend, Node.js and Express handle REST APIs and Hybrid SSR. For data persistence, better-sqlite3 delivers microsecond queries with zero async overhead and full ACID transactions.">
+      <div class="slide-header">
+        <span class="slide-tag">SYSTEM ARCHITECTURE</span>
+        <h2 class="slide-title">Comprehensive Technology Stack</h2>
+        <p class="slide-sub">Carefully selected lightweight, zero-latency, high-performance stack.</p>
+      </div>
+      <div class="grid-4">
+        <div class="card">
+          <div class="card-title blue">Frontend Layer</div>
+          <ul>
+            <li><strong>HTML5 Semantic:</strong> <span>SEO-ready and mobile accessible.</span></li>
+            <li><strong>Vanilla ES6+ JS:</strong> <span>Zero framework bloat; fast DOM hydration.</span></li>
+            <li><strong>CSS3 Tokens:</strong> <span>Dynamic theme presets &amp; dark mode.</span></li>
+            <li><strong>Responsive:</strong> <span>Mobile-first CSS Grid &amp; Flexbox.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title orange">Backend Layer</div>
+          <ul>
+            <li><strong>Node.js Runtime:</strong> <span>Event-driven, asynchronous I/O engine.</span></li>
+            <li><strong>Express.js:</strong> <span>RESTful APIs &amp; static middleware.</span></li>
+            <li><strong>Hybrid SSR:</strong> <span>Server-side theme injection prevents FOUC.</span></li>
+            <li><strong>Multer:</strong> <span>Secure multipart uploads for photos &amp; PDFs.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title purple">Database Layer</div>
+          <ul>
+            <li><strong>Embedded SQLite:</strong> <span>Zero-config embedded relational database.</span></li>
+            <li><strong>better-sqlite3:</strong> <span>Synchronous driver with microsecond latency.</span></li>
+            <li><strong>ACID Guarantees:</strong> <span>Atomic seat updates inside SQL transactions.</span></li>
+            <li><strong>Self-Contained:</strong> <span>Single pahadnama.db file easy to back up.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title emerald">Security Layer</div>
+          <ul>
+            <li><strong>scrypt Hashing:</strong> <span>Memory-hard key derivation with 16-byte salt.</span></li>
+            <li><strong>timingSafeEqual:</strong> <span>Neutralizes side-channel timing attacks.</span></li>
+            <li><strong>HttpOnly Cookie:</strong> <span>Prevents XSS token theft.</span></li>
+            <li><strong>Razorpay SDK:</strong> <span>HMAC-SHA256 signature verification.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 -->
+    <div class="slide" data-notes="Here is our system design and request lifecycle. A key innovation is our Hybrid SSR pipeline: when a user loads the page, Express synchronously reads the theme and injects it into HTML before network transmission, guaranteeing Frame 1 displays correctly. Payment signatures are checked on the server to prevent forgery.">
+      <div class="slide-header">
+        <span class="slide-tag">ENGINEERING WORKFLOW</span>
+        <h2 class="slide-title">System Design &amp; Request Lifecycle</h2>
+        <p class="slide-sub">End-to-end data pipeline between Trekkers, Admin, Server, and Payment Gateway.</p>
+      </div>
+      <div class="flow-box">
+        <div style="font-weight:800;font-size:1.05rem;color:var(--emerald);margin-bottom:0.4rem">Client-Server Architecture with Hybrid SSR Pipeline</div>
+        <div class="flow-step"><strong>1. Initial Page Load (GET /):</strong> Server reads active theme from SQLite &rarr; Injects data-theme &amp; initial state into HTML &rarr; Browser paints Frame 1 with 0ms flicker.</div>
+        <div class="flow-step"><strong>2. Booking Lifecycle:</strong> User picks slot &rarr; Server creates Razorpay Order &rarr; Client completes checkout &rarr; Server verifies HMAC-SHA256 &rarr; Atomically decrements seat and issues voucher.</div>
+        <div class="flow-step"><strong>3. Admin Management:</strong> Admin logs in via /api/admin/login &rarr; Server validates scrypt hash &rarr; Issues HttpOnly cookie &rarr; Authorized CRUD operations on trails &amp; batches.</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title blue">Architectural Decisions</div>
+          <ul>
+            <li><strong>Synchronous SQLite Queries:</strong> <span>Avoids connection pooling issues; zero async overhead for local reads.</span></li>
+            <li><strong>Strict Separation of Concerns:</strong> <span>Public APIs separated from privileged admin routes via requireAdmin.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title orange">Reliability &amp; Resilience</div>
+          <ul>
+            <li><strong>Zero Overwrite Startup:</strong> <span>Database check prevents re-seeding default credentials if admin exists.</span></li>
+            <li><strong>Graceful Fallback:</strong> <span>Direct WhatsApp UPI booking activates automatically if online gateway is disabled.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 -->
+    <div class="slide" data-notes="Our database schema is organized into three domains: catalog master tables for treks and batch dates; transactional records for bookings with unique codes; and governance tables for scrypt-hashed admin credentials, reviews, and dynamic runtime settings.">
+      <div class="slide-header">
+        <span class="slide-tag">DATA MODELING</span>
+        <h2 class="slide-title">Database Schema &amp; Entity Relationships</h2>
+        <p class="slide-sub">Relational design normalized for data integrity and high consistency.</p>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title blue">1. Catalog Master</div>
+          <ul>
+            <li><strong>treks:</strong> <span>id (PK), name, slug, difficulty, duration, distance, height, price, cover_photo, document_url, is_featured.</span></li>
+            <li><strong>trek_dates:</strong> <span>id (PK), trek_id (FK), event_date, day_of_week, available_seats, status.</span></li>
+            <li><strong>photos:</strong> <span>id (PK), trek_id (FK), photo_url, caption.</span></li>
+            <li><strong>faqs:</strong> <span>id (PK), trek_id (FK), question, answer.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title orange">2. Transactional Records</div>
+          <ul>
+            <li><strong>bookings:</strong> <span>id (PK), booking_code (UK, e.g. PAHAD-8492), trek_id (FK), slot_date, customer_name, customer_phone, customer_age, participants, total_amount, payment_status, rzp_payment_id.</span></li>
+            <li><strong>Atomic Decrement:</strong> <span>Executed inside an SQL transaction: available_seats = available_seats - N.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title emerald">3. Governance &amp; CMS</div>
+          <ul>
+            <li><strong>admins:</strong> <span>id (PK), username (UK), password_hash (salt:hash), created_at.</span></li>
+            <li><strong>feedback:</strong> <span>id (PK), trek_id (FK), customer_name, rating, comment, is_approved.</span></li>
+            <li><strong>settings:</strong> <span>Key-value store for active theme, hero images, opacity, and payment keys.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 -->
+    <div class="slide" data-notes="On the public portal, trekkers can browse categorized Sahyadri trails, inspect route elevation profiles, and download the itinerary PDF. They select upcoming weekend dates, and upon payment confirmation, receive a printable digital voucher that can also be shared with one click to WhatsApp.">
+      <div class="slide-header">
+        <span class="slide-tag">USER EXPERIENCE</span>
+        <h2 class="slide-title">Key Features: Public Trekker Portal</h2>
+        <p class="slide-sub">Designed for seamless trail discovery, transparent planning, and 1-click booking.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title blue">Trail Discovery &amp; Information</div>
+          <ul>
+            <li><strong>Curated Categories:</strong> <span>All Maharashtra Trails, Beginner Friendly, Moderate Forts, and Summit &amp; Thrill.</span></li>
+            <li><strong>Detailed Route Modal:</strong> <span>Peak elevation (ft), trek distance (km), difficulty rating, and best season.</span></li>
+            <li><strong>Itinerary &amp; Inclusions:</strong> <span>Hour-by-hour expedition timeline, inclusions/exclusions, and packing checklist.</span></li>
+            <li><strong>Downloadable PDF Brochure:</strong> <span>Direct access to official trek guide uploaded via admin panel.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title emerald">Smart Booking &amp; Digital Voucher</div>
+          <ul>
+            <li><strong>Interactive Batch Selector:</strong> <span>Visual calendar chips showing upcoming Saturday &amp; Sunday dates with seat badges.</span></li>
+            <li><strong>Lead Trekker Validation:</strong> <span>10-digit mobile phone and age (5-99) validation with dynamic total calculation.</span></li>
+            <li><strong>Instant Digital Voucher:</strong> <span>Generates branded printable voucher with unique PAHAD-XXXX confirmation code.</span></li>
+            <li><strong>1-Click WhatsApp Share:</strong> <span>Instantly shares confirmed booking details with the trek coordinator.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 -->
+    <div class="slide" data-notes="Security and financial integrity are central to this project. We do not rely on client-side confirmation from Razorpay; our server recalculates the HMAC-SHA256 signature using our private secret. If signatures do not match, the transaction is rejected. In addition, admin passwords are encrypted with memory-hard scrypt.">
+      <div class="slide-header">
+        <span class="slide-tag">FINANCIAL INTEGRITY &amp; DEFENSE</span>
+        <h2 class="slide-title">Dual Payments &amp; Cryptographic Security</h2>
+        <p class="slide-sub">Enterprise-grade financial transactions and server-side defensive protections.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title orange">Payment Processing Engine</div>
+          <ul>
+            <li><strong>Razorpay Online Checkout:</strong> <span>Standard popup supporting Credit/Debit Cards, UPI, NetBanking, and Wallets.</span></li>
+            <li><strong>HMAC-SHA256 Verification:</strong> <span>Server recalculates expected signature; rejects fraudulent client payloads.</span></li>
+            <li><strong>Sandbox Mode:</strong> <span>Test key integration with simulated test cards and live connection verification.</span></li>
+            <li><strong>WhatsApp UPI Fallback:</strong> <span>Coordinators can toggle manual UPI QR payments without gateway commission.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title emerald">Defensive Security Architecture</div>
+          <ul>
+            <li><strong>scrypt Key Derivation:</strong> <span>Passwords hashed using memory-hard scrypt with unique 16-byte random salts.</span></li>
+            <li><strong>timingSafeEqual Verification:</strong> <span>Evaluates password hashes in constant time, neutralizing timing attacks.</span></li>
+            <li><strong>HttpOnly Session Isolation:</strong> <span>Shields authentication tokens from client JavaScript, preventing XSS theft.</span></li>
+            <li><strong>Parameterized Queries:</strong> <span>100% parameter binding completely eliminates SQL Injection vulnerabilities.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 -->
+    <div class="slide" data-notes="The operations portal features an obsidian dark theme. Coordinators can manage trails, update batch dates, moderate reviews, and customize themes. Our Security tab is modeled after Instagram and Meta Accounts Center, requiring current password verification for any credential changes, with an interactive password strength bar.">
+      <div class="slide-header">
+        <span class="slide-tag">OPERATIONS PORTAL</span>
+        <h2 class="slide-title">Executive Admin CMS &amp; Accounts Center</h2>
+        <p class="slide-sub">Full-featured operations management with modern obsidian executive aesthetic.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title blue">Operations &amp; Content Management</div>
+          <ul>
+            <li><strong>Live Metrics Dashboard:</strong> <span>Total Treks, Confirmed Bookings, Online Revenue, and Pending Reviews.</span></li>
+            <li><strong>Trek &amp; Batch Manager:</strong> <span>Add/edit routes, pricing, cover photos, PDF brochures, and weekend batch seats.</span></li>
+            <li><strong>Hero Slideshow &amp; Opacity:</strong> <span>Multi-photo upload loop with real-time background opacity slider (0-100%).</span></li>
+            <li><strong>4 Curated Theme Presets:</strong> <span>Sahyadri Sanchara, Indiahikes Alpine, Rainforest Emerald, and Zostel Nomad.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title purple">Meta-Style Security Center</div>
+          <ul>
+            <li><strong>Account Health Banner:</strong> <span>Pulsing 'PROTECTED' indicator with scrypt and HttpOnly status badges.</span></li>
+            <li><strong>Instagram Handle Preview:</strong> <span>Displays active handle (@the.life.passenger) with verified admin badge.</span></li>
+            <li><strong>Two-Factor Protocols:</strong> <span>Updating username or password strictly requires current password verification.</span></li>
+            <li><strong>Interactive Strength Meter:</strong> <span>Real-time 4-segment password evaluation bar with match confirmation.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 -->
+    <div class="slide" data-notes="In conclusion, Pahadnama Trails achieves all its goals of performance, automation, and security. It offers a practical, production-ready solution for Maharashtra's adventure tourism ecosystem. Future iterations will include GPS trail tracking and offline PWA support. Thank you for your time, and I am now ready for your questions.">
+      <div class="slide-header">
+        <span class="slide-tag">SUMMARY &amp; ROADMAP</span>
+        <h2 class="slide-title">Conclusion &amp; Future Enhancements</h2>
+        <p class="slide-sub">Project achievements, key learnings, and strategic future scope.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title emerald">Project Achievements &amp; Outcomes</div>
+          <ul>
+            <li><strong>Complete Automation:</strong> <span>Replaced manual booking chaos with an automated, reliable web platform.</span></li>
+            <li><strong>Production Performance:</strong> <span>Sub-10ms response times powered by better-sqlite3 and zero-flicker SSR delivery.</span></li>
+            <li><strong>Robust Security:</strong> <span>Zero credential leaks, cryptographic scrypt hashing, and verified payment integrity.</span></li>
+            <li><strong>Industry Relevance:</strong> <span>Directly viable for trekking clubs, travel agencies, and Maharashtra adventure tourism.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title blue">Future Roadmap &amp; Enhancements</div>
+          <ul>
+            <li><strong>Live GPS Trail Tracking:</strong> <span>Integrate GPX elevation mapping and offline downloadable maps for trek leaders.</span></li>
+            <li><strong>Progressive Web App (PWA):</strong> <span>Offline access to booking vouchers and trek guides during low-connectivity summit climbs.</span></li>
+            <li><strong>Automated WhatsApp Bot:</strong> <span>Automated reminder notifications and weather advisory dispatches via WhatsApp API.</span></li>
+            <li><strong>Multi-Guide Dispatch:</strong> <span>Role-based access control for multiple trek leads and regional coordinators.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Speaker Notes Drawer -->
+  <div class="notes-drawer" id="notesDrawer">
+    <div class="notes-title">🎙️ Speaker Script / Examiner Viva Notes</div>
+    <div class="notes-content" id="notesContent"></div>
+  </div>
+
+  <!-- Bottom Control Bar -->
+  <div class="control-bar">
+    <div class="controls-left">
+      <button class="btn-ctrl" onclick="prevSlide()" title="Previous Slide (Arrow Left)">◀ Prev</button>
+      <button class="btn-ctrl" onclick="nextSlide()" title="Next Slide (Arrow Right / Space)">Next ▶</button>
+      <span class="slide-counter">Slide <strong id="currentSlideNum">1</strong> of <strong>10</strong></span>
+    </div>
+    <div class="controls-right">
+      <button class="btn-ctrl" onclick="toggleNotes()" id="btnNotes">🎙️ Notes [N]</button>
+      <button class="btn-ctrl" onclick="toggleFullscreen()">⛶ Fullscreen [F]</button>
+      <button class="btn-ctrl" onclick="window.print()">🖨️ Print / PDF</button>
+    </div>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    let currentIdx = 0;
+    const progressBar = document.getElementById('progressBar');
+    const currentSlideNum = document.getElementById('currentSlideNum');
+    const notesDrawer = document.getElementById('notesDrawer');
+    const notesContent = document.getElementById('notesContent');
+    const btnNotes = document.getElementById('btnNotes');
+
+    function updateSlide() {
+      slides.forEach((s, idx) => {
+        s.classList.toggle('active', idx === currentIdx);
+      });
+      progressBar.style.width = ((currentIdx + 1) / totalSlides * 100) + '%';
+      currentSlideNum.textContent = currentIdx + 1;
+
+      // Update speaker notes
+      const activeSlide = slides[currentIdx];
+      const notes = activeSlide.getAttribute('data-notes') || 'No notes for this slide.';
+      notesContent.textContent = notes;
+    }
+
+    function nextSlide() {
+      if (currentIdx < totalSlides - 1) {
+        currentIdx++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentIdx > 0) {
+        currentIdx--;
+        updateSlide();
+      }
+    }
+
+    function toggleNotes() {
+      notesDrawer.classList.toggle('open');
+      btnNotes.style.background = notesDrawer.classList.contains('open') ? 'var(--emerald)' : '';
+      btnNotes.style.color = notesDrawer.classList.contains('open') ? '#090e17' : '';
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'Home') {
+        currentIdx = 0;
+        updateSlide();
+      } else if (e.key === 'End') {
+        currentIdx = totalSlides - 1;
+        updateSlide();
+      } else if (e.key.toLowerCase() === 'n') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      }
+    });
+
+    // Initialize
+    updateSlide();
+  </script>
+</body>
+</html>
