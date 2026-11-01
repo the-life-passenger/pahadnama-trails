@@ -2,21 +2,33 @@
 node_modules/
 package-lock.json
 
-# Environment & credentials
+# Environment & local credentials
 .env
 .env.local
+.env.*.local
 
-# Logs
+# Logs & Debugging
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# OS Files
+# Operating System Files
 .DS_Store
 Thumbs.db
 ehthumbs.db
+desktop.ini
 
-# Temporary test files
-test.txt
+# IDE & Editor Directories
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temporary & Scratch Files
 *.tmp
+test.txt
+scratch/
